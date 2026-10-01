@@ -1,4 +1,6 @@
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
+import ActivityOverview from "./components/ActivityOverview";
+import RecentOrders from "./components/RecentOrders";
 import StatCard from "./components/StatCard";
 
 const stats = [
@@ -33,16 +35,24 @@ const stats = [
 
 const DashboardPage = () => {
   return (
-    <div className="mx-4 mt-6 grid grid-cols-1 gap-5 sm:mx-6 sm:grid-cols-2 xl:mx-8 xl:grid-cols-4">
-      {stats.map((stat) => (
-        <StatCard
-          key={stat.id}
-          title={stat.title}
-          value={stat.value}
-          change={stat.change}
-          icon={stat.icon}
-        />
-      ))}
+    <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.id}
+            title={stat.title}
+            value={stat.value}
+            change={stat.change}
+            icon={stat.icon}
+          />
+        ))}
+      </div>
+      <div className="mt-3">
+        <RecentOrders />
+      </div>
+      <div className="mt-6">
+        <ActivityOverview />
+      </div>
     </div>
   );
 };
