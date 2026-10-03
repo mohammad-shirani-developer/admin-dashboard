@@ -41,6 +41,7 @@ const products: Product[] = [
 const ProductsPage = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const filteredProducts = products.filter((product) => {
     const searchValue = search.toLowerCase();
@@ -52,7 +53,10 @@ const ProductsPage = () => {
     const matchesCategory =
       categoryFilter === "All" || product.category === categoryFilter;
 
-    return matchesSearch && matchesCategory;
+    const matchesStatus =
+      statusFilter === "All" || product.status === statusFilter;
+
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   return (
@@ -76,6 +80,17 @@ const ProductsPage = () => {
           <option value="Laptop">Laptop</option>
           <option value="Phone">Phone</option>
           <option value="Headphones">Headphones</option>
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value)}
+          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-48"
+        >
+          <option value="All">All Status</option>
+          <option value="In Stock">In Stock</option>
+          <option value="Low Stock">Low Stock</option>
+          <option value="Out of Stock">Out of Stock</option>
         </select>
       </div>
 
