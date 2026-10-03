@@ -14,8 +14,8 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         lg:flex`}
     >
       <Link href="/dashboard">Dashboard</Link>
-      <Link href="/products">Products</Link>
-      <Link href="/orders">Orders</Link>
+      <Link href="/dashboard/products">Products</Link>
+      <Link href="/dashboard/orders">Orders</Link>
       <Link href="/dashboard/users">Users</Link>
     </aside>
   );
