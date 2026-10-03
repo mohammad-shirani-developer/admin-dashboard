@@ -1,3 +1,5 @@
+"use client";
+import { useState } from "react";
 import type { Product } from "../types";
 import ProductsTable from "./components/ProductsTable";
 
@@ -37,11 +39,29 @@ const products: Product[] = [
 ];
 
 const ProductsPage = () => {
+  const [search, setSearch] = useState("");
+
+  const filteredProducts = products.filter((product) => {
+    const searchValue = search.toLowerCase();
+
+    return (
+      product.name.toLowerCase().includes(searchValue) ||
+      product.category.toLowerCase().includes(searchValue)
+    );
+  });
+
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
       <h1 className="mb-5 text-2xl font-bold text-gray-900">Products</h1>
+      <input
+        type="text"
+        placeholder="Search products..."
+        className="mb-5 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-64"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-      <ProductsTable products={products} />
+      <ProductsTable products={filteredProducts} />
     </div>
   );
 };

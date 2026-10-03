@@ -18,34 +18,47 @@ const ProductsTable = ({ products }: ProductsTableProps) => {
         </thead>
 
         <tbody>
-          {products.map((product) => (
-            <tr key={product.id} className="border-b border-gray-100">
-              <td className="px-4 py-3 font-medium text-gray-900">
-                {product.name}
-              </td>
+          {products.length > 0 ? (
+            products.map((product) => (
+              <tr key={product.id} className="border-b border-gray-100">
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  {product.name}
+                </td>
 
-              <td className="px-4 py-3 font-medium text-gray-900">
-                ${product.price.toLocaleString()}
-              </td>
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  ${product.price.toLocaleString()}
+                </td>
 
-              <td className="px-4 py-3 text-gray-600">{product.category}</td>
+                <td className="px-4 py-3 text-gray-600">{product.category}</td>
 
-              <td className="px-4 py-3 text-gray-600">{product.stock} units</td>
-              <td className="px-4 py-3">
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                    product.status === "In Stock"
-                      ? "bg-green-100 text-green-700"
-                      : product.status === "Low Stock"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {product.status}
-                </span>
+                <td className="px-4 py-3 text-gray-600">
+                  {product.stock} units
+                </td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      product.status === "In Stock"
+                        ? "bg-green-100 text-green-700"
+                        : product.status === "Low Stock"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {product.status}
+                  </span>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td
+                colSpan={5}
+                className="px-4 py-8 text-center text-sm text-gray-500"
+              >
+                No products found.
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
