@@ -55,6 +55,7 @@ const ProductsPage = () => {
   const [formError, setFormError] = useState("");
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   const filteredProducts = products.filter((product) => {
     const searchValue = search.toLowerCase();
@@ -160,6 +161,7 @@ const ProductsPage = () => {
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
+    setDeletingProduct(null);
 
     setShowForm(true);
 
@@ -172,22 +174,45 @@ const ProductsPage = () => {
     setFormError("");
   };
 
+  const handleDeleteProduct = (product: Product) => {
+    setDeletingProduct(product);
+    setEditingProduct(null);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingProduct) return;
+
+    setProducts((prevProducts) =>
+      prevProducts.filter((product) => product.id !== deletingProduct.id),
+    );
+
+    setDeletingProduct(null);
+  };
+
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
+
+          <p className="mt-1 text-sm text-gray-500">
+            {filteredProducts.length} products found
+          </p>
+        </div>
 
         <button
           type="button"
-          onClick={() => setShowForm(true)}
-          className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          onClick={() => {
+            resetForm();
+            setEditingProduct(null);
+            setShowForm(true);
+          }}
+          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 sm:w-auto"
         >
           Add Product
         </button>
-
-        <p className="mt-1 text-sm text-gray-500">
-          {filteredProducts.length} products found
-        </p>
       </div>
 
       {showForm && (
@@ -287,7 +312,7 @@ const ProductsPage = () => {
                   setEditingProduct(null);
                   setShowForm(false);
                 }}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto"
               >
                 Cancel
               </button>
@@ -295,11 +320,40 @@ const ProductsPage = () => {
               <button
                 type="button"
                 onClick={handleAddProduct}
-                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 sm:w-auto"
               >
                 {editingProduct ? "Update Product" : "Add Product"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {deletingProduct && (
+        <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-5">
+          <h2 className="text-lg font-semibold text-red-800">Delete Product</h2>
+
+          <p className="mt-2 text-sm text-red-700">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold">{deletingProduct.name}</span>?
+          </p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setDeletingProduct(null)}
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
+            >
+              Delete Product
+            </button>
           </div>
         </div>
       )}
@@ -346,7 +400,11 @@ const ProductsPage = () => {
         )}
       </div>
 
-      <ProductsTable products={filteredProducts} onEdit={handleEditProduct} />
+      <ProductsTable
+        products={filteredProducts}
+        onEdit={handleEditProduct}
+        onDelete={handleDeleteProduct}
+      />
     </div>
   );
 };
