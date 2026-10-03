@@ -36,11 +36,27 @@ const users: User[] = [
 ];
 
 const PageUsers = () => {
+  const [userList, setUserList] = useState<User[]>(users);
+
   const [search, setSearch] = useState("");
+
   const [roleFilter, setRoleFilter] = useState("All");
+
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const filteredUsers = users.filter((user) => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [name, setName] = useState("");
+
+  const [email, setEmail] = useState("");
+
+  const [role, setRole] = useState("User");
+
+  const [status, setStatus] = useState("Active");
+
+  const [formError, setFormError] = useState("");
+
+  const filteredUsers = userList.filter((user) => {
     const searchValue = search.toLowerCase();
 
     const matchesSearch =
@@ -54,6 +70,36 @@ const PageUsers = () => {
 
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const handleAddUser = () => {
+    if (!name.trim() || !email.trim()) {
+      setFormError("Name and email are required.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setFormError("Please enter a valid email.");
+      return;
+    }
+
+    setFormError("");
+
+    const newUser: User = {
+      id: Date.now(),
+      name: name.trim(),
+      email: email.trim(),
+      role,
+      status,
+    };
+
+    setUserList((currentUsers) => [...currentUsers, newUser]);
+
+    setName("");
+    setEmail("");
+    setRole("User");
+    setStatus("Active");
+    setIsFormOpen(false);
+  };
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -66,6 +112,13 @@ const PageUsers = () => {
         </div>
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <button
+            type="button"
+            onClick={() => setIsFormOpen(true)}
+            className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+          >
+            Add User
+          </button>
           <input
             type="text"
             placeholder="Search users..."
@@ -95,6 +148,96 @@ const PageUsers = () => {
           </select>
         </div>
       </div>
+
+      {isFormOpen && (
+        <div className="mb-5 rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">Add New User</h2>
+
+          {formError && (
+            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+              {formError}
+            </p>
+          )}
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Name
+              </label>
+              <input
+                type="text"
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setFormError("");
+                }}
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                placeholder="Enter name"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                placeholder="Enter email"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Role
+              </label>
+
+              <select
+                value={role}
+                onChange={(event) => setRole(event.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+              >
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Status
+              </label>
+
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddUser}
+                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+              >
+                Add User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <UsersTable users={filteredUsers} />
     </div>
