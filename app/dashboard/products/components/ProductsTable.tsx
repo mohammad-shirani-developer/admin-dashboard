@@ -2,8 +2,9 @@ import { Product } from "../../types";
 
 type ProductsTableProps = {
   products: Product[];
+  onEdit: (product: Product) => void;
 };
-const ProductsTable = ({ products }: ProductsTableProps) => {
+const ProductsTable = ({ products, onEdit }: ProductsTableProps) => {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white shadow-sm">
       <table className="w-full min-w-[700px] text-left text-sm">
@@ -14,6 +15,7 @@ const ProductsTable = ({ products }: ProductsTableProps) => {
             <th className="px-4 py-3 font-medium text-gray-600">Category</th>
             <th className="px-4 py-3 font-medium text-gray-600">Stock</th>
             <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+            <th className="px-4 py-3 font-medium text-gray-600">Actions</th>
           </tr>
         </thead>
 
@@ -46,6 +48,16 @@ const ProductsTable = ({ products }: ProductsTableProps) => {
                   >
                     {product.status}
                   </span>
+                </td>
+
+                <td className="px-4 py-3">
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    onClick={() => onEdit(product)}
+                  >
+                    Edit
+                  </button>
                 </td>
               </tr>
             ))

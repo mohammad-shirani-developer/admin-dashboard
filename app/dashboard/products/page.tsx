@@ -54,6 +54,8 @@ const ProductsPage = () => {
   const [status, setStatus] = useState("");
   const [formError, setFormError] = useState("");
 
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
   const filteredProducts = products.filter((product) => {
     const searchValue = search.toLowerCase();
 
@@ -113,6 +115,29 @@ const ProductsPage = () => {
       return;
     }
 
+    if (editingProduct) {
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === editingProduct.id
+            ? {
+                ...product,
+                name: productName.trim(),
+                price: Number(price),
+                category,
+                stock: Number(stock),
+                status,
+              }
+            : product,
+        ),
+      );
+
+      setEditingProduct(null);
+      setShowForm(false);
+      resetForm();
+
+      return;
+    }
+
     const newProduct: Product = {
       id: Date.now(),
       name: productName.trim(),
@@ -130,6 +155,20 @@ const ProductsPage = () => {
     setCategory("");
     setStock("");
     setStatus("");
+    setFormError("");
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+
+    setShowForm(true);
+
+    setProductName(product.name);
+    setPrice(String(product.price));
+    setCategory(product.category);
+    setStock(String(product.stock));
+    setStatus(product.status);
+
     setFormError("");
   };
 
@@ -154,7 +193,7 @@ const ProductsPage = () => {
       {showForm && (
         <div className="mb-5 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            Add Product
+            {editingProduct ? "Edit Product" : "Add Product"}
           </h2>
 
           {formError && (
@@ -245,6 +284,7 @@ const ProductsPage = () => {
                 type="button"
                 onClick={() => {
                   resetForm();
+                  setEditingProduct(null);
                   setShowForm(false);
                 }}
                 className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
@@ -257,7 +297,7 @@ const ProductsPage = () => {
                 onClick={handleAddProduct}
                 className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
               >
-                Add Product
+                {editingProduct ? "Update Product" : "Add Product"}
               </button>
             </div>
           </div>
@@ -306,7 +346,7 @@ const ProductsPage = () => {
         )}
       </div>
 
-      <ProductsTable products={filteredProducts} />
+      <ProductsTable products={filteredProducts} onEdit={handleEditProduct} />
     </div>
   );
 };
