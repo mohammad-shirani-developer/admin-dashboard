@@ -59,9 +59,18 @@ const ProductsPage = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const clearFilters = () => {
+    setSearch("");
+    setCategoryFilter("All");
+    setStatusFilter("All");
+  };
+
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
       <h1 className="mb-5 text-2xl font-bold text-gray-900">Products</h1>
+      <p className="mb-4 text-sm text-gray-500">
+        {filteredProducts.length} products found
+      </p>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row">
         <input
           type="text"
@@ -93,6 +102,16 @@ const ProductsPage = () => {
           <option value="Out of Stock">Out of Stock</option>
         </select>
       </div>
+
+      {(search || categoryFilter !== "All" || statusFilter !== "All") && (
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="mb-5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+        >
+          Clear Filters
+        </button>
+      )}
 
       <ProductsTable products={filteredProducts} />
     </div>
