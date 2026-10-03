@@ -37,14 +37,17 @@ const users: User[] = [
 
 const PageUsers = () => {
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All");
 
   const filteredUsers = users.filter((user) => {
     const searchValue = search.toLowerCase();
 
-    return (
+    const matchesSearch =
       user.name.toLowerCase().includes(searchValue) ||
-      user.email.toLowerCase().includes(searchValue)
-    );
+      user.email.toLowerCase().includes(searchValue);
+    const matchesRole = roleFilter === "All" || user.role === roleFilter;
+
+    return matchesSearch && matchesRole;
   });
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -57,13 +60,25 @@ const PageUsers = () => {
           </p>
         </div>
 
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-64"
-        />
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-64"
+          />
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-40"
+          >
+            <option value="All">All Roles</option>
+            <option value="Admin">Admin</option>
+            <option value="User">User</option>
+            <option value="Manager">Manager</option>
+          </select>
+        </div>
       </div>
 
       <UsersTable users={filteredUsers} />
