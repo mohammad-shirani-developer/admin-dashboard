@@ -38,6 +38,7 @@ const users: User[] = [
 const PageUsers = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const filteredUsers = users.filter((user) => {
     const searchValue = search.toLowerCase();
@@ -45,9 +46,13 @@ const PageUsers = () => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchValue) ||
       user.email.toLowerCase().includes(searchValue);
+
     const matchesRole = roleFilter === "All" || user.role === roleFilter;
 
-    return matchesSearch && matchesRole;
+    const matchesStatus =
+      statusFilter === "All" || user.status === statusFilter;
+
+    return matchesSearch && matchesRole && matchesStatus;
   });
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -77,6 +82,16 @@ const PageUsers = () => {
             <option value="Admin">Admin</option>
             <option value="User">User</option>
             <option value="Manager">Manager</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-40"
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
           </select>
         </div>
       </div>
