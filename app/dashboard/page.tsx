@@ -60,10 +60,8 @@ const DashboardPage = () => {
       <div className="mt-3">
         <RecentOrders />
       </div>
-      <div className="mt-6">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SalesOverview data={salesData} />
-      </div>
-      <div className="mt-6">
         <ActivityOverview />
       </div>
     </div>
