@@ -17,6 +17,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       <Link href="/dashboard/products">Products</Link>
       <Link href="/dashboard/orders">Orders</Link>
       <Link href="/dashboard/users">Users</Link>
+      <Link href="/dashboard/customers">Customers</Link>
     </aside>
   );
 };

@@ -23,3 +23,12 @@ export type Order = {
   date: string;
   status: string;
 };
+
+export type Customer = {
+  id: number;
+  name: string;
+  email: string;
+  orders: number;
+  totalSpent: number;
+  status: string;
+};
