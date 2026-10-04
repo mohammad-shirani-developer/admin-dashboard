@@ -14,3 +14,12 @@ export type Product = {
   stock: number;
   status: string;
 };
+
+export type Order = {
+  id: number;
+  customer: string;
+  product: string;
+  amount: number;
+  date: string;
+  status: string;
+};
