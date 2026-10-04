@@ -1,6 +1,7 @@
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
 import ActivityOverview from "./components/ActivityOverview";
 import RecentOrders from "./components/RecentOrders";
+import SalesOverview from "./components/SalesOverview";
 import StatCard from "./components/StatCard";
 
 const stats = [
@@ -33,6 +34,15 @@ const stats = [
   },
 ];
 
+const salesData = [
+  { month: "Jan", sales: 1800 },
+  { month: "Feb", sales: 2400 },
+  { month: "Mar", sales: 2100 },
+  { month: "Apr", sales: 3200 },
+  { month: "May", sales: 2800 },
+  { month: "Jun", sales: 3600 },
+];
+
 const DashboardPage = () => {
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -49,6 +59,9 @@ const DashboardPage = () => {
       </div>
       <div className="mt-3">
         <RecentOrders />
+      </div>
+      <div className="mt-6">
+        <SalesOverview data={salesData} />
       </div>
       <div className="mt-6">
         <ActivityOverview />
