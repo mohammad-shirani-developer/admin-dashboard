@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const orders = [
   {
     id: "#1001",
@@ -28,9 +30,12 @@ const RecentOrders = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Recent Orders</h2>
 
-        <button className="text-sm font-medium text-gray-600 hover:text-gray-900">
+        <Link
+          href="/dashboard/orders"
+          className="text-sm font-medium text-gray-600 hover:text-gray-900"
+        >
           View All
-        </button>
+        </Link>
       </div>
 
       <div className="mt-5 overflow-x-auto">
@@ -42,6 +47,7 @@ const RecentOrders = () => {
               <th className=" px-4 py-3 font-medium">Product</th>
               <th className=" px-4 py-3 font-medium">Amount</th>
               <th className=" px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3  font-medium">Action</th>
             </tr>
           </thead>
 
@@ -69,6 +75,15 @@ const RecentOrders = () => {
                   >
                     {order.status}
                   </span>
+                </td>
+
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/dashboard/orders`}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    View
+                  </Link>
                 </td>
               </tr>
             ))}
