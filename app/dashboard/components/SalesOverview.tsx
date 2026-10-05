@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3 } from "lucide-react";
+import { AlertCircle, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import {
   CartesianGrid,
@@ -22,6 +22,7 @@ type SalesOverviewProps = {
 const SalesOverview = ({ data }: SalesOverviewProps) => {
   const [range, setRange] = useState("6");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const filteredData = data.slice(-Number(range));
 
@@ -90,6 +91,35 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
             <div className="absolute bottom-[62%] left-[60%] h-2 w-2 rounded-full bg-gray-300" />
             <div className="absolute bottom-[70%] left-[74%] h-2 w-2 rounded-full bg-gray-300" />
             <div className="absolute bottom-[78%] left-[88%] h-2 w-2 rounded-full bg-gray-300" />
+          </div>
+        ) : hasError ? (
+          <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+            </div>
+
+            <p className="mt-3 text-sm font-medium text-gray-700">
+              Unable to load sales data
+            </p>
+
+            <p className="mt-1 max-w-xs text-xs text-gray-500">
+              Something went wrong while loading sales data.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setHasError(false);
+                setIsLoading(true);
+
+                setTimeout(() => {
+                  setIsLoading(false);
+                }, 500);
+              }}
+              className="mt-4 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+            >
+              Try Again
+            </button>
           </div>
         ) : filteredData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
