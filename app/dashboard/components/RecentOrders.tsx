@@ -1,3 +1,4 @@
+import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
 type OrderStatus = "Paid" | "Pending" | "Cancelled";
@@ -75,37 +76,57 @@ const RecentOrders = () => {
           </thead>
 
           <tbody>
-            {orders.map((order) => (
-              <tr
-                key={order.id}
-                className="border-b border-gray-100  transition-colors hover:bg-gray-50"
-              >
-                <td className="px-4 py-3 font-medium text-gray-900">
-                  {order.id}
-                </td>
-                <td className="px-4 py-3">{order.customer}</td>
-                <td className="px-4 py-3">{order.product}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">
-                  {order.amount}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${statusStyles[order.status]}`}
-                  >
-                    {order.status}
-                  </span>
-                </td>
+            {orders.length > 0 ? (
+              orders.map((order) => (
+                <tr
+                  key={order.id}
+                  className="border-b border-gray-100  transition-colors hover:bg-gray-50"
+                >
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {order.id}
+                  </td>
+                  <td className="px-4 py-3">{order.customer}</td>
+                  <td className="px-4 py-3">{order.product}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {order.amount}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${statusStyles[order.status]}`}
+                    >
+                      {order.status}
+                    </span>
+                  </td>
 
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/dashboard/orders`}
-                    className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
-                  >
-                    View Order
-                  </Link>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/dashboard/orders`}
+                      className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+                    >
+                      View Order
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-4 py-10">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+                      <ShoppingCart className="h-5 w-5 text-blue-500" />
+                    </div>
+
+                    <p className="mt-3 text-sm font-medium text-gray-700">
+                      No recent orders
+                    </p>
+
+                    <p className="mt-1 text-xs text-gray-500">
+                      There are no recent orders to display.
+                    </p>
+                  </div>
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

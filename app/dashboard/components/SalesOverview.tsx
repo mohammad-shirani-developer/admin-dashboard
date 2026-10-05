@@ -1,5 +1,6 @@
 "use client";
 
+import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 import {
   CartesianGrid,
@@ -106,8 +107,18 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-gray-500">
-            No sales data available.
+          <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+              <BarChart3 className="h-5 w-5 text-blue-500" />
+            </div>
+
+            <p className="mt-3 text-sm font-medium text-gray-700">
+              No sales data available
+            </p>
+
+            <p className="mt-1 max-w-xs text-xs text-gray-500">
+              There is no sales data available for the selected period.
+            </p>
           </div>
         )}
       </div>
