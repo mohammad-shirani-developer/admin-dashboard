@@ -66,16 +66,16 @@ const activityStyles = {
 
 const ActivityOverview = () => {
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="flex h-full flex-col rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold">Recent Activity</h2>
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-1 flex-col justify-between">
         {activities.map((activity) => {
           const style = activityStyles[activity.type];
           return (
             <div
               key={activity.id}
-              className="flex flex-col gap-2 border-b border-gray-100 py-4 sm:flex-row sm:items-center sm:justify-between last:border-b-0"
+              className="flex flex-col gap-2 border-b border-gray-100 py-3 sm:flex-row sm:items-center sm:justify-between last:border-b-0"
             >
               <div className="flex items-start gap-3">
                 <div
