@@ -41,6 +41,12 @@ const salesData = [
   { month: "Apr", sales: 3200 },
   { month: "May", sales: 2800 },
   { month: "Jun", sales: 3600 },
+  { month: "Jul", sales: 4000 },
+  { month: "Aug", sales: 3800 },
+  { month: "Sep", sales: 4200 },
+  { month: "Oct", sales: 4500 },
+  { month: "Nov", sales: 4800 },
+  { month: "Dec", sales: 5000 },
 ];
 
 const DashboardPage = () => {
