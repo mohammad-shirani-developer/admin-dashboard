@@ -41,15 +41,20 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
             Monthly sales performance
           </p>
 
-          <p className="mt-3 text-2xl font-semibold text-gray-900">
-            {isLoading ? "Loading..." : `$${totalSales.toLocaleString()}`}
-          </p>
+          {isLoading ? (
+            <div className="mt-3 h-8 w-32 animate-pulse rounded-md bg-gray-100" />
+          ) : (
+            <p className="mt-3 text-2xl font-semibold text-gray-900">
+              ${totalSales.toLocaleString()}
+            </p>
+          )}
 
           <p className="mt-1 text-xs text-gray-500">Total Sales</p>
         </div>
 
         <select
           value={range}
+          disabled={isLoading}
           onChange={(event) => {
             setIsLoading(true);
             setRange(event.target.value);
@@ -57,7 +62,7 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
               setIsLoading(false);
             }, 300);
           }}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-gray-300 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none sm:w-auto"
+          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-gray-300 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           <option value="3">Last 3 Months</option>
           <option value="6">Last 6 Months</option>
@@ -67,8 +72,23 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
 
       <div className="mt-5 h-80">
         {isLoading ? (
-          <div className="flex h-full items-center justify-center text-sm text-gray-500">
-            Loading sales data...
+          <div className="relative h-full animate-pulse px-8 pb-8 pt-4">
+            <div className="absolute bottom-8 left-8 top-4 w-px bg-gray-200" />
+
+            <div className="absolute bottom-8 left-8 right-0 h-px bg-gray-200" />
+
+            <div className="absolute bottom-[25%] left-8 right-0 border-t border-dashed border-gray-100" />
+
+            <div className="absolute bottom-[50%] left-8 right-0 border-t border-dashed border-gray-100" />
+
+            <div className="absolute bottom-[75%] left-8 right-0 border-t border-dashed border-gray-100" />
+
+            <div className="absolute bottom-[28%] left-[18%] h-2 w-2 rounded-full bg-gray-300" />
+            <div className="absolute bottom-[45%] left-[32%] h-2 w-2 rounded-full bg-gray-300" />
+            <div className="absolute bottom-[38%] left-[46%] h-2 w-2 rounded-full bg-gray-300" />
+            <div className="absolute bottom-[62%] left-[60%] h-2 w-2 rounded-full bg-gray-300" />
+            <div className="absolute bottom-[70%] left-[74%] h-2 w-2 rounded-full bg-gray-300" />
+            <div className="absolute bottom-[78%] left-[88%] h-2 w-2 rounded-full bg-gray-300" />
           </div>
         ) : filteredData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
