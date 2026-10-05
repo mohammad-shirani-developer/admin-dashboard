@@ -1,6 +1,16 @@
 import Link from "next/link";
 
-const orders = [
+type OrderStatus = "Paid" | "Pending" | "Cancelled";
+
+type Order = {
+  id: string;
+  customer: string;
+  product: string;
+  amount: string;
+  status: OrderStatus;
+};
+
+const orders: Order[] = [
   {
     id: "#1001",
     customer: "Ali",
@@ -22,7 +32,20 @@ const orders = [
     amount: "$199",
     status: "Paid",
   },
+  {
+    id: "#1004",
+    customer: "Mehdi",
+    product: "Keyboard",
+    amount: "$129",
+    status: "Cancelled",
+  },
 ];
+
+const statusStyles: Record<OrderStatus, string> = {
+  Paid: "bg-green-100 text-green-700",
+  Pending: "bg-yellow-100 text-yellow-700",
+  Cancelled: "bg-red-100 text-red-700",
+};
 
 const RecentOrders = () => {
   return (
@@ -67,11 +90,7 @@ const RecentOrders = () => {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={` inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${
-                      order.status === "Paid"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
+                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${statusStyles[order.status]}`}
                   >
                     {order.status}
                   </span>
@@ -80,9 +99,9 @@ const RecentOrders = () => {
                 <td className="px-4 py-3">
                   <Link
                     href={`/dashboard/orders`}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
                   >
-                    View
+                    View Order
                   </Link>
                 </td>
               </tr>
