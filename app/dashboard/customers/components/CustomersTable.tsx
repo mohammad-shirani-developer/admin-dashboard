@@ -1,8 +1,13 @@
-import { Customer } from "../../types";
+import { Customer, CustomerStatus } from "../../types";
 
 type CustomersTableProps = {
   customers: Customer[];
   onView: (customer: Customer) => void;
+};
+
+const statusStyles: Record<CustomerStatus, string> = {
+  Active: "bg-green-100 text-green-700",
+  Inactive: "bg-gray-100 text-gray-600",
 };
 
 const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
@@ -60,11 +65,7 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
 
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      customer.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[customer.status]}`}
                   >
                     {customer.status}
                   </span>
@@ -73,7 +74,7 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200"
                     onClick={() => onView(customer)}
                   >
                     View
