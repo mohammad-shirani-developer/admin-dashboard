@@ -1,5 +1,7 @@
+"use client";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type OrderStatus = "Paid" | "Pending" | "Cancelled";
 
@@ -49,6 +51,24 @@ const statusStyles: Record<OrderStatus, string> = {
 };
 
 const RecentOrders = () => {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedOrder(null);
+      }
+    };
+
+    if (selectedOrder) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedOrder]);
+
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -99,12 +119,13 @@ const RecentOrders = () => {
                   </td>
 
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/dashboard/orders`}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOrder(order)}
                       className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
                     >
                       View Order
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))
@@ -130,6 +151,78 @@ const RecentOrders = () => {
           </tbody>
         </table>
       </div>
+
+      {selectedOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 lg:left-64"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <div
+            className="w-full max-w-xl rounded-lg bg-white p-5 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Order Details
+              </h3>
+
+              <button
+                type="button"
+                onClick={() => setSelectedOrder(null)}
+                className="rounded-md px-2 py-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                aria-label="Close order details"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-gray-500">Order ID</p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedOrder.id}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500">Customer</p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedOrder.customer}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500">Product</p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedOrder.product}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500">Amount</p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedOrder.amount}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500">Status</p>
+                <p className="mt-1 text-sm font-medium text-gray-900">
+                  {selectedOrder.status}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedOrder(null)}
+              className="mt-5 w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
