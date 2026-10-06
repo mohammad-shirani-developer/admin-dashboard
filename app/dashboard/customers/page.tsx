@@ -1,12 +1,19 @@
 "use client";
 import { useState } from "react";
 import { initialCustomers } from "../data/customersData";
-import type { Customer } from "../types";
+import type { Customer, CustomerStatus } from "../types";
 import CustomersTable from "./components/CustomersTable";
+
+type CustomerStatusFilter = "All" | CustomerStatus;
+
+const statusStyles: Record<CustomerStatus, string> = {
+  Active: "bg-green-100 text-green-700",
+  Inactive: "bg-gray-100 text-gray-600",
+};
 
 const CustomersPage = () => {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<CustomerStatusFilter>("All");
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
@@ -51,7 +58,9 @@ const CustomersPage = () => {
 
         <select
           value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
+          onChange={(event) =>
+            setStatusFilter(event.target.value as CustomerStatusFilter)
+          }
           className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-auto"
         >
           <option value="All">All Statuses</option>
@@ -92,8 +101,8 @@ const CustomersPage = () => {
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
+          <div className="mt-5 divide-y divide-gray-100">
+            <div className="py-3">
               <p className="text-xs font-medium text-gray-500">Name</p>
 
               <p className="mt-1 text-sm font-medium text-gray-900">
@@ -101,7 +110,7 @@ const CustomersPage = () => {
               </p>
             </div>
 
-            <div>
+            <div className="py-3">
               <p className="text-xs font-medium text-gray-500">Email</p>
 
               <p className="mt-1 text-sm text-gray-900">
@@ -109,7 +118,7 @@ const CustomersPage = () => {
               </p>
             </div>
 
-            <div>
+            <div className="py-3">
               <p className="text-xs font-medium text-gray-500">Orders</p>
 
               <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -117,7 +126,7 @@ const CustomersPage = () => {
               </p>
             </div>
 
-            <div>
+            <div className="py-3">
               <p className="text-xs font-medium text-gray-500">Total Spent</p>
 
               <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -125,15 +134,11 @@ const CustomersPage = () => {
               </p>
             </div>
 
-            <div>
+            <div className="py-3">
               <p className="text-xs font-medium text-gray-500">Status</p>
 
               <span
-                className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
-                  selectedCustomer.status === "Active"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-600"
-                }`}
+                className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[selectedCustomer.status]}`}
               >
                 {selectedCustomer.status}
               </span>
