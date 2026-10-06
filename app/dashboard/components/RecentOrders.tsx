@@ -176,47 +176,49 @@ const RecentOrders = () => {
               </button>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+            <div className="mt-4 divide-y divide-gray-100">
+              <div className="py-3">
                 <p className="text-xs text-gray-500">Order ID</p>
                 <p className="mt-1 text-sm font-medium text-gray-900">
                   {selectedOrder.id}
                 </p>
               </div>
 
-              <div>
+              <div className="py-3">
                 <p className="text-xs text-gray-500">Customer</p>
                 <p className="mt-1 text-sm font-medium text-gray-900">
                   {selectedOrder.customer}
                 </p>
               </div>
 
-              <div>
+              <div className="py-3">
                 <p className="text-xs text-gray-500">Product</p>
                 <p className="mt-1 text-sm font-medium text-gray-900">
                   {selectedOrder.product}
                 </p>
               </div>
 
-              <div>
+              <div className="py-3">
                 <p className="text-xs text-gray-500">Amount</p>
-                <p className="mt-1 text-sm font-medium text-gray-900">
+                <p className="mt-1 text-base font-semibold text-gray-900">
                   {selectedOrder.amount}
                 </p>
               </div>
 
-              <div>
+              <div className="py-3">
                 <p className="text-xs text-gray-500">Status</p>
-                <p className="mt-1 text-sm font-medium text-gray-900">
+                <span
+                  className={`mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${statusStyles[selectedOrder.status]}`}
+                >
                   {selectedOrder.status}
-                </p>
+                </span>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setSelectedOrder(null)}
-              className="mt-5 w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+              className="mt-5 w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
             >
               Close
             </button>
