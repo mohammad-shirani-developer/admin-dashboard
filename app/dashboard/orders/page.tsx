@@ -1,13 +1,21 @@
 "use client";
 import { useState } from "react";
 import { initialOrders } from "../data/ordersData";
-import type { Order } from "../types";
+import type { Order, OrderStatus } from "../types";
 import OrdersTable from "./components/OrdersTable";
+
+type OrderStatusFilter = "All" | OrderStatus;
+
+const statusStyles: Record<OrderStatus, string> = {
+  Completed: "bg-green-100 text-green-700",
+  Pending: "bg-yellow-100 text-yellow-700",
+  Cancelled: "bg-red-100 text-red-700",
+};
 
 const OrderPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("All");
 
   const filteredOrders = initialOrders.filter((order) => {
     const searchValue = search.toLowerCase();
@@ -47,7 +55,9 @@ const OrderPage = () => {
         />
         <select
           value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
+          onChange={(event) =>
+            setStatusFilter(event.target.value as OrderStatusFilter)
+          }
           className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-auto"
         >
           <option value="All">All Statuses</option>
@@ -124,13 +134,7 @@ const OrderPage = () => {
             <div>
               <p className="text-xs font-medium text-gray-500">Status</p>
               <span
-                className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
-                  selectedOrder.status === "Completed"
-                    ? "bg-green-100 text-green-700"
-                    : selectedOrder.status === "Pending"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                }`}
+                className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[selectedOrder.status]}`}
               >
                 {selectedOrder.status}
               </span>
