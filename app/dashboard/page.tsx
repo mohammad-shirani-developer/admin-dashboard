@@ -3,51 +3,14 @@ import ActivityOverview from "./components/ActivityOverview";
 import RecentOrders from "./components/RecentOrders";
 import SalesOverview from "./components/SalesOverview";
 import StatCard from "./components/StatCard";
+import { salesData, stats } from "./data/dashboardData";
 
-const stats = [
-  {
-    id: "users",
-    title: "Total Users",
-    value: 1240,
-    change: "+5%",
-    icon: <Users className="h-5 w-5 text-gray-600" />,
-  },
-  {
-    id: "products",
-    title: "Total Products",
-    value: 86,
-    change: "-2%",
-    icon: <Package className="h-5 w-5 text-gray-600" />,
-  },
-  {
-    id: "orders",
-    title: "Total Orders",
-    value: 324,
-    icon: <ShoppingCart className="h-5 w-5 text-gray-600" />,
-  },
-  {
-    id: "revenue",
-    title: "Revenue",
-    value: "$12,450",
-    change: "+10%",
-    icon: <DollarSign className="h-5 w-5 text-gray-600" />,
-  },
-];
-
-const salesData = [
-  { month: "Jan", sales: 1800 },
-  { month: "Feb", sales: 2400 },
-  { month: "Mar", sales: 2100 },
-  { month: "Apr", sales: 3200 },
-  { month: "May", sales: 2800 },
-  { month: "Jun", sales: 3600 },
-  { month: "Jul", sales: 4000 },
-  { month: "Aug", sales: 3800 },
-  { month: "Sep", sales: 4200 },
-  { month: "Oct", sales: 4500 },
-  { month: "Nov", sales: 4800 },
-  { month: "Dec", sales: 5000 },
-];
+const statIcons = {
+  users: <Users className="h-5 w-5 text-gray-600" />,
+  products: <Package className="h-5 w-5 text-gray-600" />,
+  orders: <ShoppingCart className="h-5 w-5 text-gray-600" />,
+  revenue: <DollarSign className="h-5 w-5 text-gray-600" />,
+};
 
 const DashboardPage = () => {
   return (
@@ -59,7 +22,7 @@ const DashboardPage = () => {
             title={stat.title}
             value={stat.value}
             change={stat.change}
-            icon={stat.icon}
+            icon={statIcons[stat.id as keyof typeof statIcons]}
           />
         ))}
       </div>

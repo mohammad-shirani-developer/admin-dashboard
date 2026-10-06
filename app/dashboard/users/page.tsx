@@ -1,42 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { User, UserRole, UserStatus } from "../types";
+import { initialUsers } from "../data/usersData";
+import type { User, UserRole, UserStatus } from "../types";
 import UsersTable from "./components/UsersTable";
 
-const users: User[] = [
-  {
-    id: 1,
-    name: "Ali Ahmadi",
-    email: "ali@example.com",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Reza Mohammadi",
-    email: "reza@example.com",
-    role: "User",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Sara Karimi",
-    email: "sara@example.com",
-    role: "User",
-    status: "Inactive",
-  },
-  {
-    id: 4,
-    name: "Mehdi Hosseini",
-    email: "mehdi@example.com",
-    role: "Manager",
-    status: "Active",
-  },
-];
-
 const PageUsers = () => {
-  const [userList, setUserList] = useState<User[]>(users);
+  const [userList, setUserList] = useState<User[]>(initialUsers);
 
   const [search, setSearch] = useState("");
 
