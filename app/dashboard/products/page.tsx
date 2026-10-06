@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "../types";
+import type { Product, ProductCategory, ProductStatus } from "../types";
 import ProductsTable from "./components/ProductsTable";
 
 const initialProducts: Product[] = [
@@ -49,9 +49,9 @@ const ProductsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [productName, setProductName] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
   const [stock, setStock] = useState("");
-  const [status, setStatus] = useState("");
+  const [category, setCategory] = useState<ProductCategory | "">("");
+  const [status, setStatus] = useState<ProductStatus | "">("");
   const [formError, setFormError] = useState("");
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -263,7 +263,9 @@ const ProductsPage = () => {
 
               <select
                 value={category}
-                onChange={(event) => setCategory(event.target.value)}
+                onChange={(event) =>
+                  setCategory(event.target.value as ProductCategory | "")
+                }
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="">Select category</option>
@@ -294,7 +296,9 @@ const ProductsPage = () => {
 
               <select
                 value={status}
-                onChange={(event) => setStatus(event.target.value)}
+                onChange={(event) =>
+                  setStatus(event.target.value as ProductStatus | "")
+                }
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="">Select status</option>

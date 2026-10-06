@@ -1,19 +1,28 @@
+export type UserRole = "Admin" | "User" | "Manager";
+
+export type UserStatus = "Active" | "Inactive";
+
 export type User = {
   id: number;
   name: string;
   email: string;
-  role: string;
-  status: string;
+  role: UserRole;
+  status: UserStatus;
 };
+export type ProductCategory = "Laptop" | "Phone" | "Headphones";
+
+export type ProductStatus = "In Stock" | "Low Stock" | "Out of Stock";
 
 export type Product = {
   id: number;
   name: string;
   price: number;
-  category: string;
+  category: ProductCategory;
   stock: number;
-  status: string;
+  status: ProductStatus;
 };
+
+export type OrderStatus = "Completed" | "Pending" | "Cancelled";
 
 export type Order = {
   id: number;
@@ -21,8 +30,10 @@ export type Order = {
   product: string;
   amount: number;
   date: string;
-  status: string;
+  status: OrderStatus;
 };
+
+export type CustomerStatus = "Active" | "Inactive";
 
 export type Customer = {
   id: number;
@@ -30,5 +41,5 @@ export type Customer = {
   email: string;
   orders: number;
   totalSpent: number;
-  status: string;
+  status: CustomerStatus;
 };

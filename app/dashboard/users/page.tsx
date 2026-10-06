@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User } from "../types";
+import { User, UserRole, UserStatus } from "../types";
 import UsersTable from "./components/UsersTable";
 
 const users: User[] = [
@@ -50,9 +50,9 @@ const PageUsers = () => {
 
   const [email, setEmail] = useState("");
 
-  const [role, setRole] = useState("User");
+  const [role, setRole] = useState<UserRole>("User");
 
-  const [status, setStatus] = useState("Active");
+  const [status, setStatus] = useState<UserStatus>("Active");
 
   const [formError, setFormError] = useState("");
 
@@ -194,7 +194,7 @@ const PageUsers = () => {
 
               <select
                 value={role}
-                onChange={(event) => setRole(event.target.value)}
+                onChange={(event) => setRole(event.target.value as UserRole)}
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="User">User</option>
@@ -210,7 +210,9 @@ const PageUsers = () => {
 
               <select
                 value={status}
-                onChange={(event) => setStatus(event.target.value)}
+                onChange={(event) =>
+                  setStatus(event.target.value as UserStatus)
+                }
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="Active">Active</option>
