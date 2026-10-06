@@ -101,7 +101,7 @@ const RecentOrders = () => {
                   <td className="px-4 py-3">
                     <Link
                       href={`/dashboard/orders`}
-                      className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+                      className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
                     >
                       View Order
                     </Link>

@@ -115,7 +115,7 @@ const PageUsers = () => {
           <button
             type="button"
             onClick={() => setIsFormOpen(true)}
-            className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+            className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
             Add User
           </button>
@@ -170,7 +170,7 @@ const PageUsers = () => {
                   setName(e.target.value);
                   setFormError("");
                 }}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 placeholder="Enter name"
               />
             </div>
@@ -182,7 +182,7 @@ const PageUsers = () => {
               <input
                 type="email"
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 placeholder="Enter email"
               />
             </div>
@@ -195,7 +195,7 @@ const PageUsers = () => {
               <select
                 value={role}
                 onChange={(event) => setRole(event.target.value as UserRole)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="User">User</option>
                 <option value="Admin">Admin</option>
@@ -213,7 +213,7 @@ const PageUsers = () => {
                 onChange={(event) =>
                   setStatus(event.target.value as UserStatus)
                 }
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -224,7 +224,7 @@ const PageUsers = () => {
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
               >
                 Cancel
               </button>
@@ -232,9 +232,9 @@ const PageUsers = () => {
               <button
                 type="button"
                 onClick={handleAddUser}
-                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
               >
-                Add User
+                Create User
               </button>
             </div>
           </div>

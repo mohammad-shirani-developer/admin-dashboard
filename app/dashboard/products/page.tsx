@@ -209,7 +209,7 @@ const ProductsPage = () => {
             setEditingProduct(null);
             setShowForm(true);
           }}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 sm:w-auto"
+          className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-auto"
         >
           Add Product
         </button>
@@ -218,7 +218,7 @@ const ProductsPage = () => {
       {showForm && (
         <div className="mb-5 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            {editingProduct ? "Edit Product" : "Add Product"}
+            {editingProduct ? "Edit Product" : "Create Product"}
           </h2>
 
           {formError && (
@@ -237,7 +237,7 @@ const ProductsPage = () => {
                 type="text"
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm  outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 placeholder="Enter name"
               />
             </div>
@@ -251,7 +251,7 @@ const ProductsPage = () => {
                 type="number"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm  outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 placeholder="Enter price"
               />
             </div>
@@ -266,7 +266,7 @@ const ProductsPage = () => {
                 onChange={(event) =>
                   setCategory(event.target.value as ProductCategory | "")
                 }
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="">Select category</option>
                 <option value="Phone">Phone</option>
@@ -284,7 +284,7 @@ const ProductsPage = () => {
                 type="number"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 placeholder="Enter stock"
               />
             </div>
@@ -299,7 +299,7 @@ const ProductsPage = () => {
                 onChange={(event) =>
                   setStatus(event.target.value as ProductStatus | "")
                 }
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               >
                 <option value="">Select status</option>
                 <option value="In Stock">In Stock</option>
@@ -316,7 +316,7 @@ const ProductsPage = () => {
                   setEditingProduct(null);
                   setShowForm(false);
                 }}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto"
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
               >
                 Cancel
               </button>
@@ -324,9 +324,9 @@ const ProductsPage = () => {
               <button
                 type="button"
                 onClick={handleAddProduct}
-                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 sm:w-auto"
+                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-auto"
               >
-                {editingProduct ? "Update Product" : "Add Product"}
+                {editingProduct ? "Update Product" : "Create Product"}
               </button>
             </div>
           </div>
@@ -346,7 +346,7 @@ const ProductsPage = () => {
             <button
               type="button"
               onClick={() => setDeletingProduct(null)}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
             >
               Cancel
             </button>
@@ -354,7 +354,7 @@ const ProductsPage = () => {
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
+              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
             >
               Delete Product
             </button>
@@ -397,7 +397,7 @@ const ProductsPage = () => {
           <button
             type="button"
             onClick={clearFilters}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
           >
             Clear Filters
           </button>
