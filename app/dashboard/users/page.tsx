@@ -8,6 +8,9 @@ import UsersTable from "./components/UsersTable";
 const PageUsers = () => {
   const [userList, setUserList] = useState<User[]>(initialUsers);
 
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
   const [search, setSearch] = useState("");
 
   const [roleFilter, setRoleFilter] = useState("All");
@@ -70,6 +73,67 @@ const PageUsers = () => {
     setStatus("Active");
     setIsFormOpen(false);
   };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setName(user.name);
+    setEmail(user.email);
+    setRole(user.role);
+    setStatus(user.status);
+    setIsFormOpen(true);
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+
+    if (!name.trim() || !email.trim()) {
+      setFormError("Name and email are required.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setFormError("Please enter a valid email.");
+      return;
+    }
+
+    setFormError("");
+
+    setUserList((currentUsers) =>
+      currentUsers.map((user) =>
+        user.id === editingUser.id
+          ? {
+              ...user,
+              name: name.trim(),
+              email: email.trim(),
+              role,
+              status,
+            }
+          : user,
+      ),
+    );
+
+    setEditingUser(null);
+    setName("");
+    setEmail("");
+    setRole("User");
+    setStatus("Active");
+    setIsFormOpen(false);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    setDeletingUser(user);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingUser) return;
+
+    setUserList((currentUsers) =>
+      currentUsers.filter((user) => user.id !== deletingUser.id),
+    );
+
+    setDeletingUser(null);
+  };
+
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -84,7 +148,15 @@ const PageUsers = () => {
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <button
             type="button"
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => {
+              setEditingUser(null);
+              setName("");
+              setEmail("");
+              setRole("User");
+              setStatus("Active");
+              setFormError("");
+              setIsFormOpen(true);
+            }}
             className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
             Add User
@@ -121,7 +193,9 @@ const PageUsers = () => {
 
       {isFormOpen && (
         <div className="mb-5 rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Add New User</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {editingUser ? "Edit User" : "Add New User"}
+          </h2>
 
           {formError && (
             <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -136,6 +210,7 @@ const PageUsers = () => {
               </label>
               <input
                 type="text"
+                value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   setFormError("");
@@ -151,6 +226,7 @@ const PageUsers = () => {
               </label>
               <input
                 type="email"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                 placeholder="Enter email"
@@ -193,7 +269,15 @@ const PageUsers = () => {
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setIsFormOpen(false)}
+                onClick={() => {
+                  setIsFormOpen(false);
+                  setEditingUser(null);
+                  setName("");
+                  setEmail("");
+                  setRole("User");
+                  setStatus("Active");
+                  setFormError("");
+                }}
                 className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
               >
                 Cancel
@@ -201,17 +285,53 @@ const PageUsers = () => {
 
               <button
                 type="button"
-                onClick={handleAddUser}
+                onClick={editingUser ? handleUpdateUser : handleAddUser}
                 className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
               >
-                Create User
+                {editingUser ? "Update User" : "Create User"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <UsersTable users={filteredUsers} />
+      {deletingUser && (
+        <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">Delete User</h2>
+
+          <p className="mt-2 text-sm text-gray-600">
+            Are you sure you want to delete{" "}
+            <span className="font-medium text-gray-900">
+              {deletingUser.name}
+            </span>
+            ?
+          </p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setDeletingUser(null)}
+              className="rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
+              onClick={handleConfirmDelete}
+            >
+              Delete User
+            </button>
+          </div>
+        </div>
+      )}
+
+      <UsersTable
+        users={filteredUsers}
+        onEdit={handleEditUser}
+        onDelete={handleDeleteUser}
+      />
     </div>
   );
 };

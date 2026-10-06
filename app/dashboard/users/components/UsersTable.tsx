@@ -2,9 +2,11 @@ import { User } from "../../types";
 
 type UsersTableProps = {
   users: User[];
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
 };
 
-const UsersTable = ({ users }: UsersTableProps) => {
+const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white shadow-sm">
       <table className="w-full min-w-[700px] text-left text-sm">
@@ -14,6 +16,7 @@ const UsersTable = ({ users }: UsersTableProps) => {
             <th className="px-4 py-3 font-medium">Email</th>
             <th className="px-4 py-3 font-medium">Role</th>
             <th className="px-4 py-3 font-medium">Status</th>
+            <th className="px-4 py-3 font-medium">Actions</th>
           </tr>
         </thead>
 
@@ -55,13 +58,32 @@ const UsersTable = ({ users }: UsersTableProps) => {
                     {user.status}
                   </span>
                 </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(user)}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onDelete(user)}
+                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
               <td
                 className="px-4 py-8 text-gray-600 text-center text-sm"
-                colSpan={4}
+                colSpan={5}
               >
                 No users found.
               </td>
