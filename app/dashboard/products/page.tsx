@@ -70,7 +70,7 @@ const ProductsPage = () => {
     setFormError("");
   };
 
-  const handleAddProduct = () => {
+  const handleSubmitProduct = () => {
     setFormError("");
 
     const trimmedName = productName.trim();
@@ -317,7 +317,7 @@ const ProductsPage = () => {
 
               <button
                 type="button"
-                onClick={handleAddProduct}
+                onClick={handleSubmitProduct}
                 className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-auto"
               >
                 {editingProduct ? "Update Product" : "Create Product"}
