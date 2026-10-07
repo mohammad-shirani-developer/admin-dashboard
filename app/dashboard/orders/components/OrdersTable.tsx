@@ -1,8 +1,14 @@
-import { Order } from "../../types";
+import type { Order, OrderStatus } from "../../types";
 
 type OrdersTableProps = {
   orders: Order[];
   onView: (order: Order) => void;
+};
+
+const statusStyles: Record<OrderStatus, string> = {
+  Completed: "bg-green-100 text-green-700",
+  Pending: "bg-yellow-100 text-yellow-700",
+  Cancelled: "bg-red-100 text-red-700",
 };
 
 const OrdersTable = ({ orders, onView }: OrdersTableProps) => {
@@ -55,13 +61,7 @@ const OrdersTable = ({ orders, onView }: OrdersTableProps) => {
 
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      order.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : order.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                    }`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[order.status]}`}
                   >
                     {order.status}
                   </span>
