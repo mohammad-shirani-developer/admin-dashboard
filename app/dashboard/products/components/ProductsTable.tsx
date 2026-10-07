@@ -1,4 +1,4 @@
-import { Product } from "../../types";
+import type { Product } from "../../types";
 
 type ProductsTableProps = {
   products: Product[];
