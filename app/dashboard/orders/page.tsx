@@ -65,14 +65,15 @@ const OrderPage = () => {
           <option value="Pending">Pending</option>
           <option value="Cancelled">Cancelled</option>
         </select>
-
-        <button
-          type="button"
-          onClick={clearFilters}
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
-        >
-          Clear Filters
-        </button>
+        {(search || statusFilter !== "All") && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       <OrdersTable
