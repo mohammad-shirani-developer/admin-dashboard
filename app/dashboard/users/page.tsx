@@ -44,6 +44,12 @@ const PageUsers = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
+  const clearFilters = () => {
+    setSearch("");
+    setRoleFilter("All");
+    setStatusFilter("All");
+  };
+
   const handleAddUser = () => {
     if (!name.trim() || !email.trim()) {
       setFormError("Name and email are required.");
@@ -188,6 +194,16 @@ const PageUsers = () => {
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </select>
+
+          {search || roleFilter !== "All" || statusFilter !== "All" ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            >
+              Clear Filters
+            </button>
+          ) : null}
         </div>
       </div>
 
