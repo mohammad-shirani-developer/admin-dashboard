@@ -1,4 +1,4 @@
-import { Customer, CustomerStatus } from "../../types";
+import type { Customer, CustomerStatus } from "../../types";
 
 type CustomersTableProps = {
   customers: Customer[];
