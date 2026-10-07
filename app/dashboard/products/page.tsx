@@ -8,6 +8,16 @@ import ProductsTable from "./components/ProductsTable";
 type ProductCategoryFilter = "All" | ProductCategory;
 type ProductStatusFilter = "All" | ProductStatus;
 
+const expectedStatus = (stockValue: number): ProductStatus => {
+  if (stockValue > 5) {
+    return "In Stock";
+  }
+  if (stockValue > 0) {
+    return "Low Stock";
+  }
+  return "Out of Stock";
+};
+
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>(initialProducts);
 
@@ -60,29 +70,23 @@ const ProductsPage = () => {
     setFormError("");
   };
 
-  const expectedStatus = (stockValue: number): ProductStatus => {
-    if (stockValue > 5) {
-      return "In Stock";
-    }
-    if (stockValue > 0) {
-      return "Low Stock";
-    }
-    return "Out of Stock";
-  };
-
   const handleAddProduct = () => {
     setFormError("");
 
-    if (!productName.trim()) {
+    const trimmedName = productName.trim();
+    const priceNumber = Number(price);
+    const stockNumber = Number(stock);
+
+    if (!trimmedName) {
       setFormError("Product name is required.");
       return;
     }
-    if (productName.trim().length < 2) {
+    if (trimmedName.length < 2) {
       setFormError("Product name must be at least 2 characters long.");
       return;
     }
 
-    if (!price || Number.isNaN(Number(price)) || Number(price) <= 0) {
+    if (!price || Number.isNaN(priceNumber) || priceNumber <= 0) {
       setFormError("Price must be a valid number greater than 0.");
       return;
     }
@@ -97,12 +101,11 @@ const ProductsPage = () => {
       return;
     }
 
-    if (!stock || Number.isNaN(Number(stock)) || Number(stock) < 0) {
+    if (!stock || Number.isNaN(stockNumber) || stockNumber < 0) {
       setFormError("Stock must be 0 or greater.");
       return;
     }
 
-    const stockNumber = Number(stock);
     const expected = expectedStatus(stockNumber);
 
     if (status !== expected) {
@@ -118,10 +121,10 @@ const ProductsPage = () => {
           product.id === editingProduct.id
             ? {
                 ...product,
-                name: productName.trim(),
-                price: Number(price),
+                name: trimmedName,
+                price: priceNumber,
                 category,
-                stock: Number(stock),
+                stock: stockNumber,
                 status,
               }
             : product,
@@ -137,10 +140,10 @@ const ProductsPage = () => {
 
     const newProduct: Product = {
       id: Date.now(),
-      name: productName.trim(),
-      price: Number(price),
+      name: trimmedName,
+      price: priceNumber,
       category,
-      stock: Number(stock),
+      stock: stockNumber,
       status,
     };
 
