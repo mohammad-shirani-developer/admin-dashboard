@@ -1,11 +1,23 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import FilterSelect from "@/app/components/ui/FilterSelect";
+import {
+  dangerButtonClasses,
+  inputClasses,
+  primaryButtonClasses,
+  secondaryButtonClasses,
+  withClasses,
+} from "@/app/components/ui/form-controls";
+import useProductFilters, {
+  type ProductCategoryFilter,
+  type ProductStatusFilter,
+} from "@/app/hooks/useProductFilters";
+import { fetchProducts } from "@/app/lib/api";
+import type { Product } from "../types";
 import ErrorState from "../components/ErrorState";
 import TableSkeleton from "../components/TableSkeleton";
-import { fetchProducts } from "@/app/lib/api";
-import type { Product, ProductCategory, ProductStatus } from "../types";
 import ProductForm, {
   type ProductFormSubmitValues,
 } from "./components/ProductForm";
@@ -21,8 +33,25 @@ const nextCreatedProductId = () => {
   return 900000 + createdProductCount;
 };
 
-type ProductCategoryFilter = "All" | ProductCategory;
-type ProductStatusFilter = "All" | ProductStatus;
+const CATEGORY_OPTIONS: ReadonlyArray<{
+  value: ProductCategoryFilter;
+  label: string;
+}> = [
+  { value: "All", label: "All Categories" },
+  { value: "Laptop", label: "Laptop" },
+  { value: "Phone", label: "Phone" },
+  { value: "Headphones", label: "Headphones" },
+];
+
+const STATUS_OPTIONS: ReadonlyArray<{
+  value: ProductStatusFilter;
+  label: string;
+}> = [
+  { value: "All", label: "All Status" },
+  { value: "In Stock", label: "In Stock" },
+  { value: "Low Stock", label: "Low Stock" },
+  { value: "Out of Stock", label: "Out of Stock" },
+];
 
 const ProductsPage = () => {
   const queryClient = useQueryClient();
@@ -34,38 +63,21 @@ const ProductsPage = () => {
     refetch,
   } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
 
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] =
-    useState<ProductCategoryFilter>("All");
-  const [statusFilter, setStatusFilter] = useState<ProductStatusFilter>("All");
+  const {
+    search,
+    setSearch,
+    category,
+    setCategory,
+    status,
+    setStatus,
+    filteredProducts,
+    hasActiveFilters,
+    clearFilters,
+  } = useProductFilters(products);
 
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
-
-  const filteredProducts = useMemo(() => {
-    const searchValue = search.toLowerCase();
-
-    return products.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchValue) ||
-        product.category.toLowerCase().includes(searchValue);
-
-      const matchesCategory =
-        categoryFilter === "All" || product.category === categoryFilter;
-
-      const matchesStatus =
-        statusFilter === "All" || product.status === statusFilter;
-
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-  }, [products, search, categoryFilter, statusFilter]);
-
-  const clearFilters = () => {
-    setSearch("");
-    setCategoryFilter("All");
-    setStatusFilter("All");
-  };
 
   const handleCloseForm = () => {
     setShowForm(false);
@@ -161,7 +173,7 @@ const ProductsPage = () => {
             setEditingProduct(null);
             setShowForm(true);
           }}
-          className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-auto"
+          className={withClasses(primaryButtonClasses, "w-full sm:w-auto")}
         >
           Add Product
         </button>
@@ -189,7 +201,10 @@ const ProductsPage = () => {
             <button
               type="button"
               onClick={() => setDeletingProduct(null)}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className={withClasses(
+                secondaryButtonClasses,
+                "w-full border-white sm:w-auto",
+              )}
             >
               Cancel
             </button>
@@ -197,7 +212,7 @@ const ProductsPage = () => {
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
+              className={withClasses(dangerButtonClasses, "w-full sm:w-auto")}
             >
               Delete Product
             </button>
@@ -211,40 +226,30 @@ const ProductsPage = () => {
           placeholder="Search products..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-64"
+          className={withClasses(inputClasses, "sm:w-64")}
         />
 
-        <select
-          value={categoryFilter}
-          onChange={(event) =>
-            setCategoryFilter(event.target.value as ProductCategoryFilter)
-          }
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-48"
-        >
-          <option value="All">All Categories</option>
-          <option value="Laptop">Laptop</option>
-          <option value="Phone">Phone</option>
-          <option value="Headphones">Headphones</option>
-        </select>
+        <FilterSelect
+          ariaLabel="Filter by category"
+          value={category}
+          options={CATEGORY_OPTIONS}
+          onChange={setCategory}
+          className="sm:w-48"
+        />
 
-        <select
-          value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(event.target.value as ProductStatusFilter)
-          }
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-48"
-        >
-          <option value="All">All Status</option>
-          <option value="In Stock">In Stock</option>
-          <option value="Low Stock">Low Stock</option>
-          <option value="Out of Stock">Out of Stock</option>
-        </select>
+        <FilterSelect
+          ariaLabel="Filter by status"
+          value={status}
+          options={STATUS_OPTIONS}
+          onChange={setStatus}
+          className="sm:w-48"
+        />
 
-        {(search || categoryFilter !== "All" || statusFilter !== "All") && (
+        {hasActiveFilters && (
           <button
             type="button"
             onClick={clearFilters}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            className={withClasses(secondaryButtonClasses, "px-4 py-2")}
           >
             Clear Filters
           </button>

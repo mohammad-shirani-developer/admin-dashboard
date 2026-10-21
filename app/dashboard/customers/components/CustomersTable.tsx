@@ -1,13 +1,9 @@
-import type { Customer, CustomerStatus } from "../../types";
+import StatusBadge from "../../components/StatusBadge";
+import type { Customer } from "../../types";
 
 type CustomersTableProps = {
   customers: Customer[];
   onView: (customer: Customer) => void;
-};
-
-const statusStyles: Record<CustomerStatus, string> = {
-  Active: "bg-green-100 text-green-700",
-  Inactive: "bg-gray-100 text-gray-600",
 };
 
 const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
@@ -49,7 +45,7 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
             customers.map((customer) => (
               <tr
                 key={customer.id}
-                className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50"
               >
                 <td className="px-4 py-3 font-medium text-gray-900">
                   {customer.name}
@@ -60,21 +56,17 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
                 <td className="px-4 py-3 text-gray-600">{customer.orders}</td>
 
                 <td className="px-4 py-3 font-medium text-gray-900">
-                  ${customer.totalSpent.toLocaleString()}
+                  ${Math.round(customer.totalSpent).toLocaleString()}
                 </td>
 
                 <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[customer.status]}`}
-                  >
-                    {customer.status}
-                  </span>
+                  <StatusBadge status={customer.status} />
                 </td>
 
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                    className="rounded text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
                     onClick={() => onView(customer)}
                   >
                     View

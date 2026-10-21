@@ -2,18 +2,29 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import FilterSelect from "@/app/components/ui/FilterSelect";
+import {
+  inputClasses,
+  secondaryButtonClasses,
+  withClasses,
+} from "@/app/components/ui/form-controls";
 import ErrorState from "../components/ErrorState";
 import TableSkeleton from "../components/TableSkeleton";
 import { fetchCustomers } from "@/app/lib/api";
 import type { Customer, CustomerStatus } from "../types";
+import StatusBadge from "../components/StatusBadge";
 import CustomersTable from "./components/CustomersTable";
 
 type CustomerStatusFilter = "All" | CustomerStatus;
 
-const statusStyles: Record<CustomerStatus, string> = {
-  Active: "bg-green-100 text-green-700",
-  Inactive: "bg-gray-100 text-gray-600",
-};
+const CUSTOMER_STATUS_OPTIONS: ReadonlyArray<{
+  value: CustomerStatusFilter;
+  label: string;
+}> = [
+  { value: "All", label: "All Statuses" },
+  { value: "Active", label: "Active" },
+  { value: "Inactive", label: "Inactive" },
+];
 
 const CustomersPage = () => {
   const {
@@ -84,26 +95,22 @@ const CustomersPage = () => {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search by name or email..."
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:flex-1"
+          className={withClasses(inputClasses, "sm:flex-1")}
         />
 
-        <select
+        <FilterSelect
+          ariaLabel="Filter by status"
           value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(event.target.value as CustomerStatusFilter)
-          }
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-auto"
-        >
-          <option value="All">All Statuses</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
+          options={CUSTOMER_STATUS_OPTIONS}
+          onChange={setStatusFilter}
+          className="sm:w-auto"
+        />
 
         {(search || statusFilter !== "All") && (
           <button
             type="button"
             onClick={clearFilters}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+            className={withClasses(secondaryButtonClasses, "w-full sm:w-auto")}
           >
             Clear Filters
           </button>
@@ -126,7 +133,7 @@ const CustomersPage = () => {
             <button
               type="button"
               onClick={() => setSelectedCustomer(null)}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className={withClasses(secondaryButtonClasses, "px-3 py-2")}
             >
               Close
             </button>
@@ -168,11 +175,9 @@ const CustomersPage = () => {
             <div className="py-3">
               <p className="text-xs font-medium text-gray-500">Status</p>
 
-              <span
-                className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[selectedCustomer.status]}`}
-              >
-                {selectedCustomer.status}
-              </span>
+              <div className="mt-1">
+                <StatusBadge status={selectedCustomer.status} />
+              </div>
             </div>
           </div>
         </div>

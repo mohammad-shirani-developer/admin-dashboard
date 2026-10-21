@@ -1,15 +1,10 @@
-import type { Order, OrderStatus } from "../../types";
+import { withClasses } from "@/app/components/ui/form-controls";
+import StatusBadge from "../../components/StatusBadge";
+import type { Order } from "../../types";
 
 type OrdersTableProps = {
   orders: Order[];
   onView: (order: Order) => void;
-};
-
-const statusStyles: Record<OrderStatus, string> = {
-  Delivered: "bg-green-100 text-green-700",
-  Processing: "bg-blue-100 text-blue-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Cancelled: "bg-red-100 text-red-700",
 };
 
 const OrdersTable = ({ orders, onView }: OrdersTableProps) => {
@@ -61,17 +56,15 @@ const OrdersTable = ({ orders, onView }: OrdersTableProps) => {
                 <td className="px-4 py-3 text-gray-500">{order.date}</td>
 
                 <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[order.status]}`}
-                  >
-                    {order.status}
-                  </span>
+                  <StatusBadge status={order.status} />
                 </td>
 
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className={withClasses(
+                      "rounded text-sm font-medium text-blue-600 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1",
+                    )}
                     onClick={() => onView(order)}
                   >
                     View

@@ -2,6 +2,8 @@
 
 import { AlertCircle, BarChart3 } from "lucide-react";
 import { useState } from "react";
+import FilterSelect from "@/app/components/ui/FilterSelect";
+import { primaryButtonClasses } from "@/app/components/ui/form-controls";
 import {
   CartesianGrid,
   Line,
@@ -54,22 +56,18 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
           <p className="mt-1 text-xs text-gray-500">Total Sales</p>
         </div>
 
-        <select
+        <FilterSelect
+          ariaLabel="Select sales overview range"
           value={range}
           disabled={isLoading}
-          onChange={(event) => {
-            setIsLoading(true);
-            setRange(event.target.value);
-            setTimeout(() => {
-              setIsLoading(false);
-            }, 300);
-          }}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-gray-300 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-        >
-          <option value="3">Last 3 Months</option>
-          <option value="6">Last 6 Months</option>
-          <option value="12">This Year</option>
-        </select>
+          options={[
+            { value: "3", label: "Last 3 Months" },
+            { value: "6", label: "Last 6 Months" },
+            { value: "12", label: "This Year" },
+          ]}
+          onChange={setRange}
+          className="sm:w-auto"
+        />
       </div>
 
       <div className="mt-5 h-80">
@@ -116,7 +114,7 @@ const SalesOverview = ({ data }: SalesOverviewProps) => {
                   setIsLoading(false);
                 }, 500);
               }}
-              className="mt-4 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className={primaryButtonClasses}
             >
               Try Again
             </button>

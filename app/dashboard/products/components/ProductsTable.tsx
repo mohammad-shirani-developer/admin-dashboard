@@ -1,3 +1,5 @@
+import { withClasses } from "@/app/components/ui/form-controls";
+import StatusBadge from "../../components/StatusBadge";
 import type { Product } from "../../types";
 
 type ProductsTableProps = {
@@ -5,6 +7,10 @@ type ProductsTableProps = {
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
 };
+
+const actionClasses =
+  "rounded text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1";
+
 const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white shadow-sm">
@@ -23,7 +29,10 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
         <tbody>
           {products.length > 0 ? (
             products.map((product) => (
-              <tr key={product.id} className="border-b border-gray-100">
+              <tr
+                key={product.id}
+                className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+              >
                 <td className="px-4 py-3 font-medium text-gray-900">
                   {product.name}
                 </td>
@@ -38,17 +47,7 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
                   {product.stock} units
                 </td>
                 <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      product.status === "In Stock"
-                        ? "bg-green-100 text-green-700"
-                        : product.status === "Low Stock"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {product.status}
-                  </span>
+                  <StatusBadge status={product.status} />
                 </td>
 
                 <td className="px-4 py-3">
@@ -56,7 +55,10 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
                     <button
                       type="button"
                       onClick={() => onEdit(product)}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                      className={withClasses(
+                        actionClasses,
+                        "text-blue-600 hover:text-blue-700",
+                      )}
                     >
                       Edit
                     </button>
@@ -64,7 +66,10 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
                     <button
                       type="button"
                       onClick={() => onDelete(product)}
-                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                      className={withClasses(
+                        actionClasses,
+                        "text-red-600 hover:text-red-700",
+                      )}
                     >
                       Delete
                     </button>

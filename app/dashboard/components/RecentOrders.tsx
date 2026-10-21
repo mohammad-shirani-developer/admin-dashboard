@@ -3,14 +3,8 @@
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { Order, OrderStatus } from "../types";
-
-const statusStyles: Record<OrderStatus, string> = {
-  Delivered: "bg-green-100 text-green-700",
-  Processing: "bg-blue-100 text-blue-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Cancelled: "bg-red-100 text-red-700",
-};
+import StatusBadge from "./StatusBadge";
+import type { Order } from "../types";
 
 const formatAmount = (amount: number) =>
   `$${Math.round(amount).toLocaleString()}`;
@@ -47,7 +41,7 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
 
         <Link
           href="/dashboard/orders"
-          className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          className="rounded text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
         >
           View All
         </Link>
@@ -82,18 +76,14 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
                     {formatAmount(order.amount)}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${statusStyles[order.status]}`}
-                    >
-                      {order.status}
-                    </span>
+                    <StatusBadge status={order.status} />
                   </td>
 
                   <td className="px-4 py-3">
                     <button
                       type="button"
                       onClick={() => setSelectedOrder(order)}
-                      className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+                      className="rounded text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
                     >
                       View Order
                     </button>
@@ -140,7 +130,7 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
               <button
                 type="button"
                 onClick={() => setSelectedOrder(null)}
-                className="rounded-md px-2 py-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                className="rounded-md px-2 py-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
                 aria-label="Close order details"
               >
                 ×
@@ -178,18 +168,16 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
 
               <div className="py-3">
                 <p className="text-xs text-gray-500">Status</p>
-                <span
-                  className={`mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-5 ${statusStyles[selectedOrder.status]}`}
-                >
-                  {selectedOrder.status}
-                </span>
+                <div className="mt-1">
+                  <StatusBadge status={selectedOrder.status} />
+                </div>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setSelectedOrder(null)}
-              className="mt-5 w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+              className="mt-5 w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1 sm:w-auto"
             >
               Close
             </button>

@@ -2,11 +2,32 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import FilterSelect from "@/app/components/ui/FilterSelect";
+import {
+  dangerButtonClasses,
+  inputClasses,
+  primaryButtonClasses,
+  secondaryButtonClasses,
+  withClasses,
+} from "@/app/components/ui/form-controls";
+import type { UserRole, UserStatus } from "@/app/dashboard/types";
 import ErrorState from "../components/ErrorState";
 import TableSkeleton from "../components/TableSkeleton";
 import { fetchUsers } from "@/app/lib/api";
-import type { User, UserRole, UserStatus } from "../types";
+import type { User } from "../types";
 import UsersTable from "./components/UsersTable";
+
+const ROLE_OPTIONS: ReadonlyArray<{ value: UserRole; label: string }> = [
+  { value: "User", label: "User" },
+  { value: "Admin", label: "Admin" },
+  { value: "Manager", label: "Manager" },
+];
+
+const USER_STATUS_OPTIONS: ReadonlyArray<{ value: UserStatus; label: string }> =
+  [
+    { value: "Active", label: "Active" },
+    { value: "Inactive", label: "Inactive" },
+  ];
 
 /**
  * DummyJSON is a read-only API — created/updated/deleted users live only in
@@ -33,9 +54,9 @@ const PageUsers = () => {
 
   const [search, setSearch] = useState("");
 
-  const [roleFilter, setRoleFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState<"All" | UserRole>("All");
 
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<"All" | UserStatus>("All");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -208,7 +229,7 @@ const PageUsers = () => {
               resetForm();
               setIsFormOpen(true);
             }}
-            className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className={withClasses(primaryButtonClasses, "w-full sm:w-auto")}
           >
             Add User
           </button>
@@ -217,34 +238,35 @@ const PageUsers = () => {
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-64"
+            className={withClasses(inputClasses, "sm:w-64")}
           />
-          <select
+          <FilterSelect
+            ariaLabel="Filter by role"
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-40"
-          >
-            <option value="All">All Roles</option>
-            <option value="Admin">Admin</option>
-            <option value="User">User</option>
-            <option value="Manager">Manager</option>
-          </select>
+            options={[
+              { value: "All" as const, label: "All Roles" },
+              ...ROLE_OPTIONS,
+            ]}
+            onChange={setRoleFilter}
+            className="sm:w-40"
+          />
 
-          <select
+          <FilterSelect
+            ariaLabel="Filter by status"
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-40"
-          >
-            <option value="All">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+            options={[
+              { value: "All" as const, label: "All Status" },
+              ...USER_STATUS_OPTIONS,
+            ]}
+            onChange={setStatusFilter}
+            className="sm:w-40"
+          />
 
           {search || roleFilter !== "All" || statusFilter !== "All" ? (
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className={withClasses(secondaryButtonClasses, "w-full sm:w-auto")}
             >
               Clear Filters
             </button>
@@ -266,68 +288,75 @@ const PageUsers = () => {
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="user-name"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
                 Name
               </label>
               <input
+                id="user-name"
                 type="text"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   setFormError("");
                 }}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className={inputClasses}
                 placeholder="Enter name"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="user-email"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <input
+                id="user-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+                className={inputClasses}
                 placeholder="Enter email"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="user-role"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
                 Role
               </label>
 
-              <select
+              <FilterSelect
+                id="user-role"
                 value={role}
-                onChange={(event) => setRole(event.target.value as UserRole)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-              >
-                <option value="User">User</option>
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-              </select>
+                options={ROLE_OPTIONS}
+                onChange={setRole}
+              />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="user-status"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
                 Status
               </label>
 
-              <select
+              <FilterSelect
+                id="user-status"
                 value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as UserStatus)
-                }
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+                options={USER_STATUS_OPTIONS}
+                onChange={setStatus}
+              />
             </div>
 
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <div className="mt-5 flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
@@ -335,7 +364,7 @@ const PageUsers = () => {
                   setEditingUser(null);
                   resetForm();
                 }}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                className={withClasses(secondaryButtonClasses, "w-full sm:w-auto")}
               >
                 Cancel
               </button>
@@ -343,7 +372,7 @@ const PageUsers = () => {
               <button
                 type="button"
                 onClick={editingUser ? handleUpdateUser : handleAddUser}
-                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className={withClasses(primaryButtonClasses, "w-full sm:w-auto")}
               >
                 {editingUser ? "Update User" : "Create User"}
               </button>
@@ -368,14 +397,14 @@ const PageUsers = () => {
             <button
               type="button"
               onClick={() => setDeletingUser(null)}
-              className="rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className={withClasses(secondaryButtonClasses, "w-full sm:w-auto")}
             >
               Cancel
             </button>
 
             <button
               type="button"
-              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
+              className={withClasses(dangerButtonClasses, "w-full sm:w-auto")}
               onClick={handleConfirmDelete}
             >
               Delete User

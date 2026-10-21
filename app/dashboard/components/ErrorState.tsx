@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { primaryButtonClasses } from "@/app/components/ui/form-controls";
 
 type ErrorStateProps = {
   title?: string;
@@ -30,7 +31,7 @@ const ErrorState = ({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-5 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1"
+          className={`mt-5 ${primaryButtonClasses}`}
         >
           Try Again
         </button>

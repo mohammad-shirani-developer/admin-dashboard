@@ -2,26 +2,30 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import FilterSelect from "@/app/components/ui/FilterSelect";
+import {
+  inputClasses,
+  secondaryButtonClasses,
+  withClasses,
+} from "@/app/components/ui/form-controls";
 import ErrorState from "../components/ErrorState";
 import TableSkeleton from "../components/TableSkeleton";
 import { fetchOrders } from "@/app/lib/api";
 import type { Order, OrderStatus } from "../types";
+import StatusBadge from "../components/StatusBadge";
 import OrdersTable from "./components/OrdersTable";
 
 type OrderStatusFilter = "All" | OrderStatus;
 
-const statusStyles: Record<OrderStatus, string> = {
-  Delivered: "bg-green-100 text-green-700",
-  Processing: "bg-blue-100 text-blue-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Cancelled: "bg-red-100 text-red-700",
-};
-
-const ORDER_STATUSES: OrderStatus[] = [
-  "Delivered",
-  "Processing",
-  "Pending",
-  "Cancelled",
+const ORDER_STATUS_OPTIONS: ReadonlyArray<{
+  value: OrderStatusFilter;
+  label: string;
+}> = [
+  { value: "All", label: "All Statuses" },
+  { value: "Delivered", label: "Delivered" },
+  { value: "Processing", label: "Processing" },
+  { value: "Pending", label: "Pending" },
+  { value: "Cancelled", label: "Cancelled" },
 ];
 
 const OrdersPage = () => {
@@ -89,27 +93,20 @@ const OrdersPage = () => {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search by customer or product..."
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:flex-1"
+          className={withClasses(inputClasses, "sm:flex-1")}
         />
-        <select
+        <FilterSelect
+          ariaLabel="Filter by status"
           value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(event.target.value as OrderStatusFilter)
-          }
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-auto"
-        >
-          <option value="All">All Statuses</option>
-          {ORDER_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+          options={ORDER_STATUS_OPTIONS}
+          onChange={setStatusFilter}
+          className="sm:w-auto"
+        />
         {(search || statusFilter !== "All") && (
           <button
             type="button"
             onClick={clearFilters}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+            className={withClasses(secondaryButtonClasses, "w-full sm:w-auto")}
           >
             Clear Filters
           </button>
@@ -137,7 +134,7 @@ const OrdersPage = () => {
             <button
               type="button"
               onClick={() => setSelectedOrder(null)}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              className={withClasses(secondaryButtonClasses, "px-3 py-2")}
             >
               Close
             </button>
@@ -174,11 +171,9 @@ const OrdersPage = () => {
 
             <div>
               <p className="text-xs font-medium text-gray-500">Status</p>
-              <span
-                className={`mt-1 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${statusStyles[selectedOrder.status]}`}
-              >
-                {selectedOrder.status}
-              </span>
+              <div className="mt-1">
+                <StatusBadge status={selectedOrder.status} />
+              </div>
             </div>
           </div>
         </div>

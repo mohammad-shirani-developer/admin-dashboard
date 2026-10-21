@@ -1,10 +1,15 @@
-import { User } from "../../types";
+import { withClasses } from "@/app/components/ui/form-controls";
+import StatusBadge from "../../components/StatusBadge";
+import type { User } from "../../types";
 
 type UsersTableProps = {
   users: User[];
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
 };
+
+const actionClasses =
+  "rounded text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1";
 
 const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
   return (
@@ -34,36 +39,21 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                 <td className="px-4 py-3 text-gray-600">{user.email}</td>
 
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                      user.role === "Admin"
-                        ? "bg-purple-100 text-purple-700"
-                        : user.role === "Manager"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {user.role}
-                  </span>
+                  <StatusBadge status={user.role} />
                 </td>
 
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                      user.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {user.status}
-                  </span>
+                  <StatusBadge status={user.status} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => onEdit(user)}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                      className={withClasses(
+                        actionClasses,
+                        "text-blue-600 hover:text-blue-700",
+                      )}
                     >
                       Edit
                     </button>
@@ -71,7 +61,10 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                     <button
                       type="button"
                       onClick={() => onDelete(user)}
-                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                      className={withClasses(
+                        actionClasses,
+                        "text-red-600 hover:text-red-700",
+                      )}
                     >
                       Delete
                     </button>

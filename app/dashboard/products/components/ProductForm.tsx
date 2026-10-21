@@ -3,6 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  inputClasses,
+  primaryButtonClasses,
+  secondaryButtonClasses,
+  withClasses,
+} from "@/app/components/ui/form-controls";
 import type { Product, ProductCategory, ProductStatus } from "../../types";
 
 export const expectedStatusForStock = (stock: number): ProductStatus => {
@@ -147,7 +153,7 @@ const ProductForm = ({
             type="text"
             placeholder="Enter product name"
             {...register("name")}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            className={inputClasses}
           />
 
           {errors.name && (
@@ -166,7 +172,7 @@ const ProductForm = ({
           <select
             id="product-category"
             {...register("category")}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            className={withClasses(inputClasses, "text-gray-700")}
           >
             <option value="">Select category</option>
             {PRODUCT_CATEGORIES.map((category) => (
@@ -198,7 +204,7 @@ const ProductForm = ({
             min="0"
             placeholder="Enter price"
             {...register("price")}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            className={inputClasses}
           />
 
           {errors.price && (
@@ -221,7 +227,7 @@ const ProductForm = ({
             step="1"
             placeholder="Enter stock"
             {...register("stock")}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            className={inputClasses}
           />
 
           {errors.stock && (
@@ -240,7 +246,7 @@ const ProductForm = ({
           <select
             id="product-status"
             {...register("status")}
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            className={withClasses(inputClasses, "text-gray-700")}
           >
             <option value="">Select status</option>
             {PRODUCT_STATUSES.map((status) => (
@@ -268,7 +274,7 @@ const ProductForm = ({
             rows={4}
             placeholder="Enter product description"
             {...register("description")}
-            className="w-full resize-none rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
+            className={withClasses(inputClasses, "resize-none")}
           />
 
           {errors.description && (
@@ -283,7 +289,7 @@ const ProductForm = ({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
+          className={withClasses(secondaryButtonClasses, "w-full sm:w-auto")}
         >
           Cancel
         </button>
@@ -291,7 +297,7 @@ const ProductForm = ({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          className={withClasses(primaryButtonClasses, "w-full sm:w-auto")}
         >
           {submitLabel ?? (initialProduct ? "Update Product" : "Save Product")}
         </button>
