@@ -1,68 +1,39 @@
 "use client";
+
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-type OrderStatus = "Paid" | "Pending" | "Cancelled";
-
-type Order = {
-  id: string;
-  customer: string;
-  product: string;
-  amount: string;
-  status: OrderStatus;
-};
-
-const orders: Order[] = [
-  {
-    id: "#1001",
-    customer: "Ali",
-    product: "Laptop",
-    amount: "$999",
-    status: "Paid",
-  },
-  {
-    id: "#1002",
-    customer: "Reza",
-    product: "Smartphone",
-    amount: "$699",
-    status: "Pending",
-  },
-  {
-    id: "#1003",
-    customer: "Sara",
-    product: "Headphones",
-    amount: "$199",
-    status: "Paid",
-  },
-  {
-    id: "#1004",
-    customer: "Mehdi",
-    product: "Keyboard",
-    amount: "$129",
-    status: "Cancelled",
-  },
-];
+import type { Order, OrderStatus } from "../types";
 
 const statusStyles: Record<OrderStatus, string> = {
-  Paid: "bg-green-100 text-green-700",
+  Delivered: "bg-green-100 text-green-700",
+  Processing: "bg-blue-100 text-blue-700",
   Pending: "bg-yellow-100 text-yellow-700",
   Cancelled: "bg-red-100 text-red-700",
 };
 
-const RecentOrders = () => {
+const formatAmount = (amount: number) =>
+  `$${Math.round(amount).toLocaleString()}`;
+
+type RecentOrdersProps = {
+  orders: Order[];
+};
+
+const RecentOrders = ({ orders }: RecentOrdersProps) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
+    if (!selectedOrder) {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSelectedOrder(null);
       }
     };
 
-    if (selectedOrder) {
-      window.addEventListener("keydown", handleKeyDown);
-    }
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -103,12 +74,12 @@ const RecentOrders = () => {
                   className="border-b border-gray-100  transition-colors hover:bg-gray-50"
                 >
                   <td className="px-4 py-3 font-medium text-gray-900">
-                    {order.id}
+                    #{order.id}
                   </td>
                   <td className="px-4 py-3">{order.customer}</td>
                   <td className="px-4 py-3">{order.product}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">
-                    {order.amount}
+                    {formatAmount(order.amount)}
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -180,7 +151,7 @@ const RecentOrders = () => {
               <div className="py-3">
                 <p className="text-xs text-gray-500">Order ID</p>
                 <p className="mt-1 text-sm font-medium text-gray-900">
-                  {selectedOrder.id}
+                  #{selectedOrder.id}
                 </p>
               </div>
 
@@ -201,7 +172,7 @@ const RecentOrders = () => {
               <div className="py-3">
                 <p className="text-xs text-gray-500">Amount</p>
                 <p className="mt-1 text-base font-semibold text-gray-900">
-                  {selectedOrder.amount}
+                  {formatAmount(selectedOrder.amount)}
                 </p>
               </div>
 

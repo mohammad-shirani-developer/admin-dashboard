@@ -1,12 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { initialUsers } from "../data/usersData";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import ErrorState from "../components/ErrorState";
+import TableSkeleton from "../components/TableSkeleton";
+import { fetchUsers } from "@/app/lib/api";
 import type { User, UserRole, UserStatus } from "../types";
 import UsersTable from "./components/UsersTable";
 
+/**
+ * DummyJSON is a read-only API — created/updated/deleted users live only in
+ * the React Query cache, with ids coming from a module-level counter.
+ */
+let createdUserCount = 0;
+const nextCreatedUserId = () => {
+  createdUserCount += 1;
+  return 900000 + createdUserCount;
+};
+
 const PageUsers = () => {
-  const [userList, setUserList] = useState<User[]>(initialUsers);
+  const queryClient = useQueryClient();
+
+  const {
+    data: userList = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["users"], queryFn: fetchUsers });
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
@@ -29,20 +49,24 @@ const PageUsers = () => {
 
   const [formError, setFormError] = useState("");
 
-  const filteredUsers = userList.filter((user) => {
-    const searchValue = search.toLowerCase();
+  const filteredUsers = useMemo(
+    () =>
+      userList.filter((user) => {
+        const searchValue = search.toLowerCase();
 
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchValue) ||
-      user.email.toLowerCase().includes(searchValue);
+        const matchesSearch =
+          user.name.toLowerCase().includes(searchValue) ||
+          user.email.toLowerCase().includes(searchValue);
 
-    const matchesRole = roleFilter === "All" || user.role === roleFilter;
+        const matchesRole = roleFilter === "All" || user.role === roleFilter;
 
-    const matchesStatus =
-      statusFilter === "All" || user.status === statusFilter;
+        const matchesStatus =
+          statusFilter === "All" || user.status === statusFilter;
 
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+        return matchesSearch && matchesRole && matchesStatus;
+      }),
+    [userList, search, roleFilter, statusFilter],
+  );
 
   const clearFilters = () => {
     setSearch("");
@@ -50,33 +74,47 @@ const PageUsers = () => {
     setStatusFilter("All");
   };
 
-  const handleAddUser = () => {
-    if (!name.trim() || !email.trim()) {
-      setFormError("Name and email are required.");
-      return;
-    }
-
-    if (!email.includes("@")) {
-      setFormError("Please enter a valid email.");
-      return;
-    }
-
-    setFormError("");
-
-    const newUser: User = {
-      id: Date.now(),
-      name: name.trim(),
-      email: email.trim(),
-      role,
-      status,
-    };
-
-    setUserList((currentUsers) => [...currentUsers, newUser]);
-
+  const resetForm = () => {
     setName("");
     setEmail("");
     setRole("User");
     setStatus("Active");
+    setFormError("");
+  };
+
+  const validateForm = () => {
+    if (!name.trim() || !email.trim()) {
+      setFormError("Name and email are required.");
+      return false;
+    }
+
+    if (!email.includes("@")) {
+      setFormError("Please enter a valid email.");
+      return false;
+    }
+
+    setFormError("");
+    return true;
+  };
+
+  const handleAddUser = () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    // DummyJSON is read-only — the new user is added to the query cache only.
+    queryClient.setQueryData<User[]>(["users"], (previous = []) => [
+      {
+        id: nextCreatedUserId(),
+        name: name.trim(),
+        email: email.trim(),
+        role,
+        status,
+      },
+      ...previous,
+    ]);
+
+    resetForm();
     setIsFormOpen(false);
   };
 
@@ -90,22 +128,17 @@ const PageUsers = () => {
   };
 
   const handleUpdateUser = () => {
-    if (!editingUser) return;
-
-    if (!name.trim() || !email.trim()) {
-      setFormError("Name and email are required.");
+    if (!editingUser) {
       return;
     }
 
-    if (!email.includes("@")) {
-      setFormError("Please enter a valid email.");
+    if (!validateForm()) {
       return;
     }
 
-    setFormError("");
-
-    setUserList((currentUsers) =>
-      currentUsers.map((user) =>
+    // DummyJSON is read-only — the edit is applied to the query cache only.
+    queryClient.setQueryData<User[]>(["users"], (previous = []) =>
+      previous.map((user) =>
         user.id === editingUser.id
           ? {
               ...user,
@@ -119,10 +152,7 @@ const PageUsers = () => {
     );
 
     setEditingUser(null);
-    setName("");
-    setEmail("");
-    setRole("User");
-    setStatus("Active");
+    resetForm();
     setIsFormOpen(false);
   };
 
@@ -131,14 +161,33 @@ const PageUsers = () => {
   };
 
   const handleConfirmDelete = () => {
-    if (!deletingUser) return;
+    if (!deletingUser) {
+      return;
+    }
 
-    setUserList((currentUsers) =>
-      currentUsers.filter((user) => user.id !== deletingUser.id),
+    // DummyJSON is read-only — the delete is applied to the query cache only.
+    queryClient.setQueryData<User[]>(["users"], (previous = []) =>
+      previous.filter((user) => user.id !== deletingUser.id),
     );
 
     setDeletingUser(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <ErrorState onRetry={() => void refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -156,11 +205,7 @@ const PageUsers = () => {
             type="button"
             onClick={() => {
               setEditingUser(null);
-              setName("");
-              setEmail("");
-              setRole("User");
-              setStatus("Active");
-              setFormError("");
+              resetForm();
               setIsFormOpen(true);
             }}
             className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
@@ -288,11 +333,7 @@ const PageUsers = () => {
                 onClick={() => {
                   setIsFormOpen(false);
                   setEditingUser(null);
-                  setName("");
-                  setEmail("");
-                  setRole("User");
-                  setStatus("Active");
-                  setFormError("");
+                  resetForm();
                 }}
                 className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
               >

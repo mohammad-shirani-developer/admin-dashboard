@@ -8,6 +8,7 @@ export type User = {
   email: string;
   role: UserRole;
   status: UserStatus;
+  image?: string;
 };
 export type ProductCategory = "Laptop" | "Phone" | "Headphones";
 
@@ -20,9 +21,19 @@ export type Product = {
   category: ProductCategory;
   stock: number;
   status: ProductStatus;
+  description?: string;
+  thumbnail?: string;
 };
 
-export type OrderStatus = "Completed" | "Pending" | "Cancelled";
+export type OrderStatus = "Delivered" | "Processing" | "Pending" | "Cancelled";
+
+export type OrderItem = {
+  productId: number;
+  title: string;
+  price: number;
+  quantity: number;
+  thumbnail?: string;
+};
 
 export type Order = {
   id: number;
@@ -31,6 +42,7 @@ export type Order = {
   amount: number;
   date: string;
   status: OrderStatus;
+  items: OrderItem[];
 };
 
 export type CustomerStatus = "Active" | "Inactive";
@@ -42,4 +54,5 @@ export type Customer = {
   orders: number;
   totalSpent: number;
   status: CustomerStatus;
+  image?: string;
 };

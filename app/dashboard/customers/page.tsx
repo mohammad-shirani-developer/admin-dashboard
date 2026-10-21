@@ -1,6 +1,10 @@
 "use client";
-import { useState } from "react";
-import { initialCustomers } from "../data/customersData";
+
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import ErrorState from "../components/ErrorState";
+import TableSkeleton from "../components/TableSkeleton";
+import { fetchCustomers } from "@/app/lib/api";
 import type { Customer, CustomerStatus } from "../types";
 import CustomersTable from "./components/CustomersTable";
 
@@ -12,6 +16,13 @@ const statusStyles: Record<CustomerStatus, string> = {
 };
 
 const CustomersPage = () => {
+  const {
+    data: customers = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CustomerStatusFilter>("All");
 
@@ -19,23 +30,43 @@ const CustomersPage = () => {
     null,
   );
 
-  const filteredCustomers = initialCustomers.filter((customer) => {
-    const searchValue = search.toLowerCase();
+  const filteredCustomers = useMemo(
+    () =>
+      customers.filter((customer) => {
+        const searchValue = search.toLowerCase();
 
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchValue) ||
-      customer.email.toLowerCase().includes(searchValue);
+        const matchesSearch =
+          customer.name.toLowerCase().includes(searchValue) ||
+          customer.email.toLowerCase().includes(searchValue);
 
-    const matchesStatus =
-      statusFilter === "All" || customer.status === statusFilter;
+        const matchesStatus =
+          statusFilter === "All" || customer.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+        return matchesSearch && matchesStatus;
+      }),
+    [customers, search, statusFilter],
+  );
 
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("All");
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <ErrorState onRetry={() => void refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -130,7 +161,7 @@ const CustomersPage = () => {
               <p className="text-xs font-medium text-gray-500">Total Spent</p>
 
               <p className="mt-1 text-lg font-semibold text-gray-900">
-                ${selectedCustomer.totalSpent.toLocaleString()}
+                ${Math.round(selectedCustomer.totalSpent).toLocaleString()}
               </p>
             </div>
 

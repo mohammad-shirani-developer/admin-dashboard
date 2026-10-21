@@ -6,7 +6,8 @@ type OrdersTableProps = {
 };
 
 const statusStyles: Record<OrderStatus, string> = {
-  Completed: "bg-green-100 text-green-700",
+  Delivered: "bg-green-100 text-green-700",
+  Processing: "bg-blue-100 text-blue-700",
   Pending: "bg-yellow-100 text-yellow-700",
   Cancelled: "bg-red-100 text-red-700",
 };
@@ -44,7 +45,7 @@ const OrdersTable = ({ orders, onView }: OrdersTableProps) => {
             </tr>
           ) : (
             orders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50">
+              <tr key={order.id} className="transition-colors hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">
                   #{order.id}
                 </td>
@@ -54,7 +55,7 @@ const OrdersTable = ({ orders, onView }: OrdersTableProps) => {
                 <td className="px-4 py-3 text-gray-700">{order.product}</td>
 
                 <td className="px-4 py-3 text-gray-700">
-                  ${order.amount.toLocaleString()}
+                  ${Math.round(order.amount).toLocaleString()}
                 </td>
 
                 <td className="px-4 py-3 text-gray-500">{order.date}</td>

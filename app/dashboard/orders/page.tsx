@@ -1,39 +1,77 @@
 "use client";
-import { useState } from "react";
-import { initialOrders } from "../data/ordersData";
+
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import ErrorState from "../components/ErrorState";
+import TableSkeleton from "../components/TableSkeleton";
+import { fetchOrders } from "@/app/lib/api";
 import type { Order, OrderStatus } from "../types";
 import OrdersTable from "./components/OrdersTable";
 
 type OrderStatusFilter = "All" | OrderStatus;
 
 const statusStyles: Record<OrderStatus, string> = {
-  Completed: "bg-green-100 text-green-700",
+  Delivered: "bg-green-100 text-green-700",
+  Processing: "bg-blue-100 text-blue-700",
   Pending: "bg-yellow-100 text-yellow-700",
   Cancelled: "bg-red-100 text-red-700",
 };
 
-const OrderPage = () => {
+const ORDER_STATUSES: OrderStatus[] = [
+  "Delivered",
+  "Processing",
+  "Pending",
+  "Cancelled",
+];
+
+const OrdersPage = () => {
+  const {
+    data: orders = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["orders"], queryFn: fetchOrders });
+
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("All");
 
-  const filteredOrders = initialOrders.filter((order) => {
+  const filteredOrders = useMemo(() => {
     const searchValue = search.toLowerCase();
 
-    const matchesSearch =
-      order.customer.toLowerCase().includes(searchValue) ||
-      order.product.toLowerCase().includes(searchValue);
+    return orders.filter((order) => {
+      const matchesSearch =
+        order.customer.toLowerCase().includes(searchValue) ||
+        order.product.toLowerCase().includes(searchValue) ||
+        String(order.id).includes(searchValue);
 
-    const matchesStatus =
-      statusFilter === "All" || order.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "All" || order.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    });
+  }, [orders, search, statusFilter]);
 
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("All");
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <ErrorState onRetry={() => void refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -61,9 +99,11 @@ const OrderPage = () => {
           className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 sm:w-auto"
         >
           <option value="All">All Statuses</option>
-          <option value="Completed">Completed</option>
-          <option value="Pending">Pending</option>
-          <option value="Cancelled">Cancelled</option>
+          {ORDER_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </select>
         {(search || statusFilter !== "All") && (
           <button
@@ -121,7 +161,7 @@ const OrderPage = () => {
             <div>
               <p className="text-xs font-medium text-gray-500">Amount</p>
               <p className="mt-1 text-lg font-semibold text-gray-900">
-                ${selectedOrder.amount.toLocaleString()}
+                ${Math.round(selectedOrder.amount).toLocaleString()}
               </p>
             </div>
 
@@ -147,4 +187,4 @@ const OrderPage = () => {
   );
 };
 
-export default OrderPage;
+export default OrdersPage;

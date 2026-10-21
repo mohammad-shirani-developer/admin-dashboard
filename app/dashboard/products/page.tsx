@@ -1,59 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import { initialProducts } from "../data/productsData";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import ErrorState from "../components/ErrorState";
+import TableSkeleton from "../components/TableSkeleton";
+import { fetchProducts } from "@/app/lib/api";
 import type { Product, ProductCategory, ProductStatus } from "../types";
+import ProductForm, {
+  type ProductFormSubmitValues,
+} from "./components/ProductForm";
 import ProductsTable from "./components/ProductsTable";
+
+/**
+ * DummyJSON is a read-only API — created/updated/deleted products live only
+ * in the React Query cache, with ids coming from a module-level counter.
+ */
+let createdProductCount = 0;
+const nextCreatedProductId = () => {
+  createdProductCount += 1;
+  return 900000 + createdProductCount;
+};
 
 type ProductCategoryFilter = "All" | ProductCategory;
 type ProductStatusFilter = "All" | ProductStatus;
 
-const expectedStatus = (stockValue: number): ProductStatus => {
-  if (stockValue > 5) {
-    return "In Stock";
-  }
-  if (stockValue > 0) {
-    return "Low Stock";
-  }
-  return "Out of Stock";
-};
-
 const ProductsPage = () => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const queryClient = useQueryClient();
+
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
 
   const [search, setSearch] = useState("");
-
   const [categoryFilter, setCategoryFilter] =
     useState<ProductCategoryFilter>("All");
-
   const [statusFilter, setStatusFilter] = useState<ProductStatusFilter>("All");
 
   const [showForm, setShowForm] = useState(false);
-  const [productName, setProductName] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [category, setCategory] = useState<ProductCategory | "">("");
-  const [status, setStatus] = useState<ProductStatus | "">("");
-  const [formError, setFormError] = useState("");
-
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = useMemo(() => {
     const searchValue = search.toLowerCase();
 
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchValue) ||
-      product.category.toLowerCase().includes(searchValue);
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchValue) ||
+        product.category.toLowerCase().includes(searchValue);
 
-    const matchesCategory =
-      categoryFilter === "All" || product.category === categoryFilter;
+      const matchesCategory =
+        categoryFilter === "All" || product.category === categoryFilter;
 
-    const matchesStatus =
-      statusFilter === "All" || product.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "All" || product.status === statusFilter;
 
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [products, search, categoryFilter, statusFilter]);
 
   const clearFilters = () => {
     setSearch("");
@@ -61,129 +67,82 @@ const ProductsPage = () => {
     setStatusFilter("All");
   };
 
-  const resetForm = () => {
-    setProductName("");
-    setPrice("");
-    setCategory("");
-    setStock("");
-    setStatus("");
-    setFormError("");
-  };
-
-  const handleSubmitProduct = () => {
-    setFormError("");
-
-    const trimmedName = productName.trim();
-    const priceNumber = Number(price);
-    const stockNumber = Number(stock);
-
-    if (!trimmedName) {
-      setFormError("Product name is required.");
-      return;
-    }
-    if (trimmedName.length < 2) {
-      setFormError("Product name must be at least 2 characters long.");
-      return;
-    }
-
-    if (!price || Number.isNaN(priceNumber) || priceNumber <= 0) {
-      setFormError("Price must be a valid number greater than 0.");
-      return;
-    }
-
-    if (!category) {
-      setFormError("Please select a category.");
-      return;
-    }
-
-    if (!status) {
-      setFormError("Please select a status.");
-      return;
-    }
-
-    if (!stock || Number.isNaN(stockNumber) || stockNumber < 0) {
-      setFormError("Stock must be 0 or greater.");
-      return;
-    }
-
-    const expected = expectedStatus(stockNumber);
-
-    if (status !== expected) {
-      setFormError(
-        `The status should be "${expected}" based on the stock value.`,
-      );
-      return;
-    }
-
-    if (editingProduct) {
-      setProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          product.id === editingProduct.id
-            ? {
-                ...product,
-                name: trimmedName,
-                price: priceNumber,
-                category,
-                stock: stockNumber,
-                status,
-              }
-            : product,
-        ),
-      );
-
-      setEditingProduct(null);
-      setShowForm(false);
-      resetForm();
-
-      return;
-    }
-
-    const newProduct: Product = {
-      id: Date.now(),
-      name: trimmedName,
-      price: priceNumber,
-      category,
-      stock: stockNumber,
-      status,
-    };
-
-    setProducts((prevProducts) => [...prevProducts, newProduct]);
-
+  const handleCloseForm = () => {
     setShowForm(false);
-    resetForm();
-  };
-
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setDeletingProduct(null);
-
-    setShowForm(true);
-
-    setProductName(product.name);
-    setPrice(String(product.price));
-    setCategory(product.category);
-    setStock(String(product.stock));
-    setStatus(product.status);
-
-    setFormError("");
-  };
-
-  const handleDeleteProduct = (product: Product) => {
-    setDeletingProduct(product);
     setEditingProduct(null);
-    setShowForm(false);
-    resetForm();
+  };
+
+  const handleCreateProduct = (values: ProductFormSubmitValues) => {
+    // DummyJSON is read-only — the new product is added to the query cache only.
+    queryClient.setQueryData<Product[]>(["products"], (previous = []) => [
+      {
+        id: nextCreatedProductId(),
+        name: values.name,
+        price: values.price,
+        category: values.category,
+        stock: values.stock,
+        status: values.status,
+        description: values.description || undefined,
+      },
+      ...previous,
+    ]);
+
+    handleCloseForm();
+  };
+
+  const handleUpdateProduct = (values: ProductFormSubmitValues) => {
+    if (!editingProduct) {
+      return;
+    }
+
+    // DummyJSON is read-only — the edit is applied to the query cache only.
+    queryClient.setQueryData<Product[]>(["products"], (previous = []) =>
+      previous.map((product) =>
+        product.id === editingProduct.id
+          ? {
+              ...product,
+              name: values.name,
+              price: values.price,
+              category: values.category,
+              stock: values.stock,
+              status: values.status,
+              description: values.description || undefined,
+            }
+          : product,
+      ),
+    );
+
+    handleCloseForm();
   };
 
   const handleConfirmDelete = () => {
-    if (!deletingProduct) return;
+    if (!deletingProduct) {
+      return;
+    }
 
-    setProducts((prevProducts) =>
-      prevProducts.filter((product) => product.id !== deletingProduct.id),
+    // DummyJSON is read-only — the delete is applied to the query cache only.
+    queryClient.setQueryData<Product[]>(["products"], (previous = []) =>
+      previous.filter((product) => product.id !== deletingProduct.id),
     );
 
     setDeletingProduct(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
+        <ErrorState onRetry={() => void refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
@@ -199,7 +158,6 @@ const ProductsPage = () => {
         <button
           type="button"
           onClick={() => {
-            resetForm();
             setEditingProduct(null);
             setShowForm(true);
           }}
@@ -210,121 +168,12 @@ const ProductsPage = () => {
       </div>
 
       {showForm && (
-        <div className="mb-5 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            {editingProduct ? "Edit Product" : "Create Product"}
-          </h2>
-
-          {formError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {formError}
-            </div>
-          )}
-
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Name
-              </label>
-
-              <input
-                type="text"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm  outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-                placeholder="Enter name"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Price
-              </label>
-
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm  outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-                placeholder="Enter price"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Category
-              </label>
-
-              <select
-                value={category}
-                onChange={(event) =>
-                  setCategory(event.target.value as ProductCategory | "")
-                }
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-              >
-                <option value="">Select category</option>
-                <option value="Phone">Phone</option>
-                <option value="Laptop">Laptop</option>
-                <option value="Headphones">Headphones</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Stock
-              </label>
-
-              <input
-                type="number"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-                placeholder="Enter stock"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Status
-              </label>
-
-              <select
-                value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as ProductStatus | "")
-                }
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition  focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-              >
-                <option value="">Select status</option>
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Out of Stock">Out of Stock</option>
-              </select>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  resetForm();
-                  setEditingProduct(null);
-                  setShowForm(false);
-                }}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:w-auto"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSubmitProduct}
-                className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 sm:w-auto"
-              >
-                {editingProduct ? "Update Product" : "Create Product"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ProductForm
+          key={editingProduct ? `edit-${editingProduct.id}` : "create"}
+          initialProduct={editingProduct}
+          onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
+          onCancel={handleCloseForm}
+        />
       )}
 
       {deletingProduct && (
@@ -404,8 +253,16 @@ const ProductsPage = () => {
 
       <ProductsTable
         products={filteredProducts}
-        onEdit={handleEditProduct}
-        onDelete={handleDeleteProduct}
+        onEdit={(product) => {
+          setDeletingProduct(null);
+          setEditingProduct(product);
+          setShowForm(true);
+        }}
+        onDelete={(product) => {
+          setEditingProduct(null);
+          setShowForm(false);
+          setDeletingProduct(product);
+        }}
       />
     </div>
   );
