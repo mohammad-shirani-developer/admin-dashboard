@@ -11,7 +11,7 @@ const DashboardShell = ({ children }: { children: React.ReactNode }) => {
         isOpen={isSidebarOpen}
         onNavigate={() => setIsSidebarOpen(false)}
       />
-      <main className=" min-w-0 flex-1 lg:ml-64">
+      <main className="min-w-0 flex-1 lg:ml-60">
         <Navbar onMenuClick={() => setIsSidebarOpen((prev) => !prev)} />
         {children}
       </main>

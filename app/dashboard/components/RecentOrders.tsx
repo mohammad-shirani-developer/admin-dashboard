@@ -3,6 +3,7 @@
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { formatOrderId } from "../analytics";
 import StatusBadge from "./StatusBadge";
 import type { Order } from "../types";
 
@@ -35,28 +36,30 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
   }, [selectedOrder]);
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Recent Orders</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Recent Orders
+        </h2>
 
         <Link
           href="/dashboard/orders"
-          className="rounded text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
+          className="rounded text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 dark:text-blue-400 dark:hover:text-blue-300 dark:focus-visible:ring-offset-gray-900"
         >
           View All
         </Link>
       </div>
 
       <div className="mt-5 overflow-x-auto">
-        <table className="w-full min-w-[700px]  text-left text-sm">
+        <table className="w-full min-w-[700px] text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-gray-500 ">
-              <th className=" px-4 py-3 font-medium">Order ID</th>
-              <th className=" px-4 py-3 font-medium">Customer</th>
-              <th className=" px-4 py-3 font-medium">Product</th>
-              <th className=" px-4 py-3 font-medium">Amount</th>
-              <th className=" px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3  font-medium">Action</th>
+            <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              <th className="px-4 py-3 font-medium">Order ID</th>
+              <th className="px-4 py-3 font-medium">Customer</th>
+              <th className="px-4 py-3 font-medium">Product</th>
+              <th className="px-4 py-3 font-medium">Amount</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Action</th>
             </tr>
           </thead>
 
@@ -65,14 +68,18 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
               orders.map((order) => (
                 <tr
                   key={order.id}
-                  className="border-b border-gray-100  transition-colors hover:bg-gray-50"
+                  className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/40"
                 >
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    #{order.id}
+                  <td className="px-4 py-3 font-medium tabular-nums text-gray-900 dark:text-gray-100">
+                    {formatOrderId(order.id)}
                   </td>
-                  <td className="px-4 py-3">{order.customer}</td>
-                  <td className="px-4 py-3">{order.product}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                    {order.customer}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                    {order.product}
+                  </td>
+                  <td className="px-4 py-3 font-medium tabular-nums text-gray-900 dark:text-gray-100">
                     {formatAmount(order.amount)}
                   </td>
                   <td className="px-4 py-3">
@@ -83,7 +90,7 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
                     <button
                       type="button"
                       onClick={() => setSelectedOrder(order)}
-                      className="rounded text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
+                      className="rounded text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 dark:text-blue-400 dark:hover:text-blue-300 dark:focus-visible:ring-offset-gray-900"
                     >
                       View Order
                     </button>
@@ -94,15 +101,18 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
               <tr>
                 <td colSpan={6} className="px-4 py-10">
                   <div className="flex flex-col items-center justify-center text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
-                      <ShoppingCart className="h-5 w-5 text-blue-500" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-500/10">
+                      <ShoppingCart
+                        className="h-5 w-5 text-blue-500 dark:text-blue-400"
+                        aria-hidden="true"
+                      />
                     </div>
 
-                    <p className="mt-3 text-sm font-medium text-gray-700">
+                    <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                       No recent orders
                     </p>
 
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       There are no recent orders to display.
                     </p>
                   </div>
@@ -115,59 +125,69 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
 
       {selectedOrder && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 lg:left-64"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 lg:left-60"
           onClick={() => setSelectedOrder(null)}
         >
           <div
-            className="w-full max-w-xl rounded-lg bg-white p-5 shadow-lg"
+            className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-5 shadow-lg dark:border-gray-800 dark:bg-gray-900"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Order Details
               </h3>
 
               <button
                 type="button"
                 onClick={() => setSelectedOrder(null)}
-                className="rounded-md px-2 py-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+                className="rounded-md px-2 py-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 aria-label="Close order details"
               >
                 ×
               </button>
             </div>
 
-            <div className="mt-4 divide-y divide-gray-100">
+            <div className="mt-4 divide-y divide-gray-100 dark:divide-gray-800">
               <div className="py-3">
-                <p className="text-xs text-gray-500">Order ID</p>
-                <p className="mt-1 text-sm font-medium text-gray-900">
-                  #{selectedOrder.id}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Order ID
+                </p>
+                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {formatOrderId(selectedOrder.id)}
                 </p>
               </div>
 
               <div className="py-3">
-                <p className="text-xs text-gray-500">Customer</p>
-                <p className="mt-1 text-sm font-medium text-gray-900">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Customer
+                </p>
+                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                   {selectedOrder.customer}
                 </p>
               </div>
 
               <div className="py-3">
-                <p className="text-xs text-gray-500">Product</p>
-                <p className="mt-1 text-sm font-medium text-gray-900">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Product
+                </p>
+                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                   {selectedOrder.product}
                 </p>
               </div>
 
               <div className="py-3">
-                <p className="text-xs text-gray-500">Amount</p>
-                <p className="mt-1 text-base font-semibold text-gray-900">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Amount
+                </p>
+                <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                   {formatAmount(selectedOrder.amount)}
                 </p>
               </div>
 
               <div className="py-3">
-                <p className="text-xs text-gray-500">Status</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Status
+                </p>
                 <div className="mt-1">
                   <StatusBadge status={selectedOrder.status} />
                 </div>
@@ -177,7 +197,7 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
             <button
               type="button"
               onClick={() => setSelectedOrder(null)}
-              className="mt-5 w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1 sm:w-auto"
+              className="mt-5 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:bg-gray-900 dark:focus-visible:ring-offset-gray-900 sm:w-auto"
             >
               Close
             </button>

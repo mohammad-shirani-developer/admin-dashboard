@@ -1,3 +1,6 @@
+"use client";
+
+import Avatar from "@/app/components/ui/Avatar";
 import StatusBadge from "../../components/StatusBadge";
 import type { Customer } from "../../types";
 
@@ -8,34 +11,46 @@ type CustomersTableProps = {
 
 const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <table className="w-full min-w-[700px] text-left text-sm">
-        <thead className="border-b border-gray-100 bg-gray-50">
-          <tr>
-            <th className="px-4 py-3 font-medium text-gray-600">Customer</th>
+        <thead className="bg-gray-50 dark:bg-gray-800/50">
+          <tr className="border-b border-gray-200 dark:border-gray-800">
+            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+              Customer
+            </th>
 
-            <th className="px-4 py-3 font-medium text-gray-600">Email</th>
+            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+              Email
+            </th>
 
-            <th className="px-4 py-3 font-medium text-gray-600">Orders</th>
+            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+              Orders
+            </th>
 
-            <th className="px-4 py-3 font-medium text-gray-600">Total Spent</th>
+            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+              Total Spent
+            </th>
 
-            <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+              Status
+            </th>
 
-            <th className="px-4 py-3 font-medium text-gray-600">Actions</th>
+            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+              Actions
+            </th>
           </tr>
         </thead>
 
-        <tbody>
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {customers.length === 0 ? (
             <tr>
               <td colSpan={6} className="px-4 py-10 text-center">
                 <div className="flex flex-col items-center">
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     No customers found
                   </p>
 
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Try adjusting your search or filters.
                   </p>
                 </div>
@@ -45,17 +60,26 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
             customers.map((customer) => (
               <tr
                 key={customer.id}
-                className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50"
+                className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/40"
               >
-                <td className="px-4 py-3 font-medium text-gray-900">
-                  {customer.name}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar src={customer.image} name={customer.name} />
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {customer.name}
+                    </span>
+                  </div>
                 </td>
 
-                <td className="px-4 py-3 text-gray-600">{customer.email}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                  {customer.email}
+                </td>
 
-                <td className="px-4 py-3 text-gray-600">{customer.orders}</td>
+                <td className="px-4 py-3 tabular-nums text-gray-600 dark:text-gray-400">
+                  {customer.orders}
+                </td>
 
-                <td className="px-4 py-3 font-medium text-gray-900">
+                <td className="px-4 py-3 font-medium tabular-nums text-gray-900 dark:text-gray-100">
                   ${Math.round(customer.totalSpent).toLocaleString()}
                 </td>
 
@@ -66,7 +90,7 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    className="rounded text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
+                    className="rounded text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 dark:text-blue-400 dark:hover:text-blue-300 dark:focus-visible:ring-offset-gray-900"
                     onClick={() => onView(customer)}
                   >
                     View

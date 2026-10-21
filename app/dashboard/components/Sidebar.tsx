@@ -2,10 +2,12 @@
 
 import {
   LayoutDashboard,
+  LayoutGrid,
   Package,
   ShoppingCart,
   UserRound,
   Users,
+  UsersRound,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,7 +24,12 @@ const NAV_ITEMS = [
   { href: "/dashboard/products", label: "Products", icon: Package },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart },
   { href: "/dashboard/users", label: "Users", icon: Users },
-  { href: "/dashboard/customers", label: "Customers", icon: UserRound },
+  { href: "/dashboard/customers", label: "Customers", icon: UsersRound },
+];
+
+/** Settings group from the mockup — Profile only, there is no auth to log out. */
+const SETTINGS_ITEMS = [
+  { href: "/dashboard/profile", label: "Profile", icon: UserRound },
 ];
 
 const Sidebar = ({ isOpen, onNavigate }: SidebarProps) => {
@@ -32,6 +39,27 @@ const Sidebar = ({ isOpen, onNavigate }: SidebarProps) => {
     href === "/dashboard"
       ? pathname === "/dashboard"
       : pathname === href || pathname.startsWith(`${href}/`);
+
+  const renderItem = (item: (typeof NAV_ITEMS)[number]) => {
+    const active = isActive(item.href);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={withClasses(
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400",
+          active
+            ? "bg-blue-600 text-white"
+            : "text-gray-400 hover:bg-white/5 hover:text-white",
+        )}
+      >
+        <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+        {item.label}
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -43,35 +71,40 @@ const Sidebar = ({ isOpen, onNavigate }: SidebarProps) => {
         />
       )}
 
+      {/* Navy slate-900 in BOTH themes — the mockup keeps the sidebar dark. */}
       <aside
         aria-label="Dashboard navigation"
-        className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 flex-col bg-gray-800 p-4 text-white
+        className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-60 flex-col bg-slate-900 p-4 text-white
           lg:top-0 lg:h-screen
           ${isOpen ? "flex" : "hidden"}
           lg:flex`}
       >
-        <nav className="flex flex-1 flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                aria-current={active ? "page" : undefined}
-                className={withClasses(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400",
-                  active
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-300 hover:bg-gray-700/50 hover:text-white",
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                {item.label}
-              </Link>
-            );
-          })}
+        <div className="mb-6 flex items-center gap-3 px-2 pt-1">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+            <LayoutGrid className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <span className="text-lg font-bold">TechAdmin</span>
+        </div>
+
+        <nav
+          aria-label="Main navigation"
+          className="flex flex-1 flex-col gap-1"
+        >
+          {NAV_ITEMS.map(renderItem)}
         </nav>
+
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <p
+            className="px-3 pb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+            id="sidebar-settings-label"
+          >
+            Settings
+          </p>
+
+          <nav aria-labelledby="sidebar-settings-label" className="flex flex-col gap-1">
+            {SETTINGS_ITEMS.map(renderItem)}
+          </nav>
+        </div>
       </aside>
     </>
   );

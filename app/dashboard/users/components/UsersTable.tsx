@@ -1,4 +1,7 @@
+"use client";
+
 import { withClasses } from "@/app/components/ui/form-controls";
+import Avatar from "@/app/components/ui/Avatar";
 import StatusBadge from "../../components/StatusBadge";
 import type { User } from "../../types";
 
@@ -9,14 +12,14 @@ type UsersTableProps = {
 };
 
 const actionClasses =
-  "rounded text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1";
+  "rounded text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-gray-900";
 
 const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <table className="w-full min-w-[700px] text-left text-sm">
-        <thead>
-          <tr className="border-b border-gray-100 text-gray-500">
+        <thead className="bg-gray-50 dark:bg-gray-800/50">
+          <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
             <th className="px-4 py-3 font-medium">Name</th>
             <th className="px-4 py-3 font-medium">Email</th>
             <th className="px-4 py-3 font-medium">Role</th>
@@ -25,18 +28,25 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
           </tr>
         </thead>
 
-        <tbody>
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {users.length > 0 ? (
             users.map((user) => (
               <tr
                 key={user.id}
-                className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/40"
               >
-                <td className="px-4 py-3 font-medium text-gray-900">
-                  {user.name}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar src={user.image} name={user.name} />
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {user.name}
+                    </span>
+                  </div>
                 </td>
 
-                <td className="px-4 py-3 text-gray-600">{user.email}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                  {user.email}
+                </td>
 
                 <td className="px-4 py-3">
                   <StatusBadge status={user.role} />
@@ -45,6 +55,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                 <td className="px-4 py-3">
                   <StatusBadge status={user.status} />
                 </td>
+
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <button
@@ -52,7 +63,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                       onClick={() => onEdit(user)}
                       className={withClasses(
                         actionClasses,
-                        "text-blue-600 hover:text-blue-700",
+                        "text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300",
                       )}
                     >
                       Edit
@@ -63,7 +74,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                       onClick={() => onDelete(user)}
                       className={withClasses(
                         actionClasses,
-                        "text-red-600 hover:text-red-700",
+                        "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300",
                       )}
                     >
                       Delete
@@ -75,7 +86,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
           ) : (
             <tr>
               <td
-                className="px-4 py-8 text-gray-600 text-center text-sm"
+                className="px-4 py-8 text-center text-sm text-gray-600 dark:text-gray-400"
                 colSpan={5}
               >
                 No users found.

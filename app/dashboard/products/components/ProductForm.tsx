@@ -1,7 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { ImageIcon } from "lucide-react";
+import Image from "next/image";
+import { useForm, useWatch } from "react-hook-form";
+import { useState } from "react";
 import { z } from "zod";
 import {
   inputClasses,
@@ -66,6 +69,10 @@ const productFormSchema = z
       .string()
       .trim()
       .max(500, "Description must be 500 characters or fewer."),
+    imageUrl: z
+      .string()
+      .trim()
+      .max(500, "Image URL must be 500 characters or fewer."),
   })
   .superRefine((data, ctx) => {
     const expected = expectedStatusForStock(Number(data.stock));
@@ -89,6 +96,7 @@ export type ProductFormSubmitValues = {
   stock: number;
   status: ProductStatus;
   description: string;
+  imageUrl: string;
 };
 
 type ProductFormProps = {
@@ -96,6 +104,41 @@ type ProductFormProps = {
   submitLabel?: string;
   onSubmit: (values: ProductFormSubmitValues) => void;
   onCancel: () => void;
+};
+
+/**
+ * Live preview thumbnail for the Image URL field. Remounted via `key` on the
+ * URL so a failed load retries cleanly when the URL changes — no effects.
+ */
+const ProductImagePreview = ({ src }: { src: string }) => {
+  const [hasFailed, setHasFailed] = useState(false);
+  const trimmedSrc = src.trim();
+
+  if (!trimmedSrc || hasFailed) {
+    return (
+      <div
+        aria-hidden="true"
+        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-950"
+      >
+        <ImageIcon className="h-5 w-5 text-gray-400" />
+      </div>
+    );
+  }
+
+  return (
+    <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950">
+      {/* Unoptimized: previews arbitrary user-entered hosts without config. */}
+      <Image
+        src={trimmedSrc}
+        alt="Product image preview"
+        fill
+        sizes="56px"
+        unoptimized
+        className="object-cover"
+        onError={() => setHasFailed(true)}
+      />
+    </span>
+  );
 };
 
 const ProductForm = ({
@@ -107,6 +150,7 @@ const ProductForm = ({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -117,8 +161,33 @@ const ProductForm = ({
       stock: initialProduct ? String(initialProduct.stock) : "",
       status: initialProduct?.status ?? ("" as ProductFormValues["status"]),
       description: initialProduct?.description ?? "",
+      imageUrl: initialProduct?.thumbnail ?? "",
     },
   });
+
+  const watchedImageUrl = useWatch({ control, name: "imageUrl" });
+
+  const heading = initialProduct ? "Edit Product" : "Add Product";
+
+  const labelClasses =
+    "mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300";
+  const errorClasses = "mt-1 text-xs text-red-600 dark:text-red-400";
+
+  /** Required fields show the mockup's red asterisk next to their label. */
+  const renderLabel = (
+    htmlFor: string,
+    text: string,
+    required: boolean = true,
+  ) => (
+    <label htmlFor={htmlFor} className={labelClasses}>
+      {text}
+      {required && (
+        <span className="ml-0.5 text-red-500" aria-hidden="true">
+          *
+        </span>
+      )}
+    </label>
+  );
 
   return (
     <form
@@ -131,22 +200,22 @@ const ProductForm = ({
           stock: Number(values.stock),
           status: values.status,
           description: values.description.trim(),
+          imageUrl: values.imageUrl.trim(),
         }),
       )}
-      className="mb-5 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+      className="mb-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
     >
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">
-        {initialProduct ? "Edit Product" : "Add Product"}
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        {heading}
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Fill in product details
+      </p>
+
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label
-            htmlFor="product-name"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Product Name
-          </label>
+          {renderLabel("product-name", "Product Name")}
 
           <input
             id="product-name"
@@ -157,22 +226,17 @@ const ProductForm = ({
           />
 
           {errors.name && (
-            <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
+            <p className={errorClasses}>{errors.name.message}</p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor="product-category"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Category
-          </label>
+          {renderLabel("product-category", "Category")}
 
           <select
             id="product-category"
             {...register("category")}
-            className={withClasses(inputClasses, "text-gray-700")}
+            className={withClasses(inputClasses, "text-gray-700 dark:text-gray-300")}
           >
             <option value="">Select category</option>
             {PRODUCT_CATEGORIES.map((category) => (
@@ -183,19 +247,12 @@ const ProductForm = ({
           </select>
 
           {errors.category && (
-            <p className="mt-1 text-xs text-red-600">
-              {errors.category.message}
-            </p>
+            <p className={errorClasses}>{errors.category.message}</p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor="product-price"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Price
-          </label>
+          {renderLabel("product-price", "Price")}
 
           <input
             id="product-price"
@@ -208,17 +265,12 @@ const ProductForm = ({
           />
 
           {errors.price && (
-            <p className="mt-1 text-xs text-red-600">{errors.price.message}</p>
+            <p className={errorClasses}>{errors.price.message}</p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor="product-stock"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Stock
-          </label>
+          {renderLabel("product-stock", "Stock")}
 
           <input
             id="product-stock"
@@ -231,22 +283,17 @@ const ProductForm = ({
           />
 
           {errors.stock && (
-            <p className="mt-1 text-xs text-red-600">{errors.stock.message}</p>
+            <p className={errorClasses}>{errors.stock.message}</p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor="product-status"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Status
-          </label>
+          {renderLabel("product-status", "Status")}
 
           <select
             id="product-status"
             {...register("status")}
-            className={withClasses(inputClasses, "text-gray-700")}
+            className={withClasses(inputClasses, "text-gray-700 dark:text-gray-300")}
           >
             <option value="">Select status</option>
             {PRODUCT_STATUSES.map((status) => (
@@ -257,17 +304,32 @@ const ProductForm = ({
           </select>
 
           {errors.status && (
-            <p className="mt-1 text-xs text-red-600">{errors.status.message}</p>
+            <p className={errorClasses}>{errors.status.message}</p>
+          )}
+        </div>
+
+        <div>
+          {renderLabel("product-image-url", "Image URL", false)}
+
+          <div className="flex items-center gap-3">
+            <ProductImagePreview key={watchedImageUrl} src={watchedImageUrl} />
+
+            <input
+              id="product-image-url"
+              type="url"
+              placeholder="https://example.com/image.jpg"
+              {...register("imageUrl")}
+              className={inputClasses}
+            />
+          </div>
+
+          {errors.imageUrl && (
+            <p className={errorClasses}>{errors.imageUrl.message}</p>
           )}
         </div>
 
         <div className="sm:col-span-2">
-          <label
-            htmlFor="product-description"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Description
-          </label>
+          {renderLabel("product-description", "Description", false)}
 
           <textarea
             id="product-description"
@@ -278,9 +340,7 @@ const ProductForm = ({
           />
 
           {errors.description && (
-            <p className="mt-1 text-xs text-red-600">
-              {errors.description.message}
-            </p>
+            <p className={errorClasses}>{errors.description.message}</p>
           )}
         </div>
       </div>
