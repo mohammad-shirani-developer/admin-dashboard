@@ -1,7 +1,7 @@
 "use client";
 
-import { Package, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import Image from "next/image";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import ProductThumbnail from "@/app/components/ui/ProductThumbnail";
 import { useEffect, useRef, useState } from "react";
 import useOutsideClick from "@/app/hooks/useOutsideClick";
 import { withClasses } from "@/app/components/ui/form-controls";
@@ -170,25 +170,10 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
                 className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/40"
               >
                 <td className="px-4 py-3">
-                  {product.thumbnail ? (
-                    <Image
-                      src={product.thumbnail}
-                      alt=""
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 rounded-lg border border-gray-100 object-cover dark:border-gray-800"
-                    />
-                  ) : (
-                    <div
-                      aria-hidden="true"
-                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-                    >
-                      <Package
-                        className="h-4 w-4 text-gray-400"
-                        aria-hidden="true"
-                      />
-                    </div>
-                  )}
+                  <ProductThumbnail
+                    src={product.thumbnail}
+                    className="border border-gray-100 dark:border-gray-800"
+                  />
                 </td>
 
                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">

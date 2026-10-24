@@ -76,7 +76,11 @@ const DashboardPage = () => {
     const orders = ordersQuery.data ?? [];
     const users = usersQuery.data ?? [];
 
-    const revenue = orders.reduce((sum, order) => sum + order.amount, 0);
+    /* Cancelled carts never became money in the door — the revenue card and
+       its trend only count orders that are still real revenue. */
+    const revenue = orders
+      .filter((order) => order.status !== "Cancelled")
+      .reduce((sum, order) => sum + order.amount, 0);
 
     const ordersLast7 = orders.filter((order) => {
       const daysAgo = daysAgoFromDateString(order.date);
@@ -87,11 +91,12 @@ const DashboardPage = () => {
       return daysAgo >= 7 && daysAgo < 14;
     });
 
-    const revenueLast7 = ordersLast7.reduce((sum, order) => sum + order.amount, 0);
-    const revenuePrevious7 = ordersPrevious7.reduce(
-      (sum, order) => sum + order.amount,
-      0,
-    );
+    const revenueLast7 = ordersLast7
+      .filter((order) => order.status !== "Cancelled")
+      .reduce((sum, order) => sum + order.amount, 0);
+    const revenuePrevious7 = ordersPrevious7
+      .filter((order) => order.status !== "Cancelled")
+      .reduce((sum, order) => sum + order.amount, 0);
 
     // Trends are only shown where the data supports them: orders and revenue
     // have real derived dates to compare week-over-week. Products and users

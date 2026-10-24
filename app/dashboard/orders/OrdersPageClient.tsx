@@ -59,10 +59,15 @@ const OrdersPage = () => {
     const searchValue = search.toLowerCase();
 
     const matches = orders.filter((order) => {
+      /* The table displays #1001-style ids, so searching must match the
+         DISPLAYED id ("1005"/"#1005"), not just the raw cart id ("5"). */
+      const displayedId = formatOrderId(order.id).toLowerCase();
+      const rawId = String(order.id);
       const matchesSearch =
         order.customer.toLowerCase().includes(searchValue) ||
         order.product.toLowerCase().includes(searchValue) ||
-        String(order.id).includes(searchValue);
+        rawId.includes(searchValue) ||
+        displayedId.includes(searchValue);
 
       const matchesStatus =
         statusFilter === "All" || order.status === statusFilter;

@@ -14,9 +14,17 @@ export const daysAgoFromDateString = (
   now: Date = new Date(),
 ): number => {
   const [year, month, day] = dateString.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.round((startOfToday.getTime() - date.getTime()) / MS_PER_DAY);
+  /* UTC-normalized on purpose: the server (SSR/prefetch) and the user's
+     browser can sit in different timezones, and a local-midnight calculation
+     made them disagree around day boundaries -> React hydration mismatch.
+     Both sides now derive the day offset from the same UTC instant. */
+  const dateUtcMs = Date.UTC(year, month - 1, day);
+  const startOfTodayUtcMs = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  return Math.round((startOfTodayUtcMs - dateUtcMs) / MS_PER_DAY);
 };
 
 /** Human label for a day offset ("Today", "Yesterday", "5 days ago"). */
@@ -65,20 +73,33 @@ export const bucketOrdersByDay = (
   days: number,
   now: Date = new Date(),
 ): DayBucket[] => {
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  /* UTC-normalized to match daysAgoFromDateString (see above). */
+  const startOfToday = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
 
   const buckets: DayBucket[] = [];
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const date = new Date(startOfToday);
-    date.setDate(date.getDate() - offset);
+    date.setUTCDate(date.getUTCDate() - offset);
     buckets.push({
-      label: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      label: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }),
       revenue: 0,
       orders: 0,
     });
   }
 
   for (const order of orders) {
+    /* Cancelled carts never became revenue — counting them would inflate
+       the chart against the Total Revenue card. */
+    if (order.status === "Cancelled") {
+      continue;
+    }
+
     const daysAgo = daysAgoFromDateString(order.date, now);
     if (daysAgo >= 0 && daysAgo < days) {
       const bucket = buckets[days - 1 - daysAgo];

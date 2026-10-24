@@ -22,12 +22,14 @@ const initialsFor = (name: string): string => {
 
 /**
  * Circular avatar that renders the user's real DummyJSON image and falls back
- * to initials when the image is missing or fails to load.
+ * to initials when the image is missing or fails to load. The failure is
+ * tracked per URL: when the src changes (e.g. after an edit) the avatar
+ * retries the new URL instead of staying stuck on the fallback forever.
  */
 const Avatar = ({ src, name, className }: AvatarProps) => {
-  const [hasFailed, setHasFailed] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
-  if (!src || hasFailed) {
+  if (!src || failedUrl === src) {
     return (
       <span
         aria-hidden="true"
@@ -54,7 +56,7 @@ const Avatar = ({ src, name, className }: AvatarProps) => {
         fill
         sizes="40px"
         className="object-cover"
-        onError={() => setHasFailed(true)}
+        onError={() => setFailedUrl(src)}
       />
     </span>
   );

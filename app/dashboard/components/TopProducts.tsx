@@ -1,7 +1,7 @@
 "use client";
 
 import { Package } from "lucide-react";
-import Image from "next/image";
+import ProductThumbnail from "@/app/components/ui/ProductThumbnail";
 import Link from "next/link";
 import { useMemo } from "react";
 import { formatUsd, topProductsByQuantity } from "../analytics";
@@ -54,19 +54,7 @@ const TopProducts = ({ orders }: TopProductsProps) => {
         <ul className="mt-5 flex flex-1 flex-col justify-around gap-4">
           {topProducts.map((product) => (
             <li key={product.productId} className="flex items-center gap-3">
-              {product.thumbnail ? (
-                <Image
-                  src={product.thumbnail}
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                  <Package className="h-4 w-4 text-gray-400" aria-hidden="true" />
-                </div>
-              )}
+              <ProductThumbnail src={product.thumbnail} />
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">

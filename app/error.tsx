@@ -3,7 +3,7 @@
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { startTransition, useTransition } from "react";
+import { useTransition } from "react";
 import {
   primaryButtonClasses,
   secondaryButtonClasses,

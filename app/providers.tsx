@@ -12,6 +12,11 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
           queries: {
             staleTime: 60 * 1000,
             refetchOnWindowFocus: false,
+            /* The fetch layer already retries transient failures three times
+               with backoff; a TanStack retry on top of that multiplied the
+               traffic (3 x 3) and made failures feel slow. One query-level
+               retry is enough. */
+            retry: 1,
           },
         },
       }),
