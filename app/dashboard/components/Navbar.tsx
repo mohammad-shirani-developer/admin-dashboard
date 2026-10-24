@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronDown, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { inputClasses, withClasses } from "@/app/components/ui/form-controls";
 import NotificationsMenu from "./NotificationsMenu";
 import ThemeToggle from "./ThemeToggle";
+import UserMenu from "./UserMenu";
 
 type NavbarProps = {
   onMenuClick: () => void;
@@ -58,22 +59,8 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
       <div className="ml-auto flex items-center gap-2 pl-2 sm:gap-3 sm:pl-4">
         <NotificationsMenu />
 
-        {/* Static profile display from the mockup — no auth in this demo. */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          <span
-            aria-hidden="true"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
-          >
-            M
-          </span>
-          <span className="hidden text-sm font-medium text-gray-700 sm:inline dark:text-gray-300">
-            Mohammad
-          </span>
-          <ChevronDown
-            className="hidden h-4 w-4 text-gray-400 sm:block"
-            aria-hidden="true"
-          />
-        </div>
+        {/* Account menu behind the avatar (the mockup chip's chevron now actually opens it). */}
+        <UserMenu />
 
         <ThemeToggle />
       </div>

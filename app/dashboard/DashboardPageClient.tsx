@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Box, Calendar, DollarSign, ShoppingCart, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { chipSelectClasses } from "@/app/components/ui/form-controls";
+import Dropdown from "@/app/components/ui/Dropdown";
 import { fetchOrders, fetchProducts, fetchUsers } from "@/app/lib/api";
 import {
   daysAgoFromDateString,
@@ -181,24 +182,20 @@ const DashboardPage = () => {
           </p>
         </div>
 
-        {/* Bordered chip from the mockup: Calendar icon + a real range select. */}
+        {/* Bordered chip from the mockup: Calendar icon + a themed dropdown
+            (the native select's OS popup ignored the dark theme). */}
         <div className="flex w-fit items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <Calendar
             className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
-          <select
-            aria-label="Select revenue chart range"
+          <Dropdown
+            ariaLabel="Select revenue chart range"
             value={range}
-            onChange={(event) => setRange(event.target.value as RevenueRange)}
-            className={chipSelectClasses}
-          >
-            {RANGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={RANGE_OPTIONS}
+            onChange={(value) => setRange(value as RevenueRange)}
+            triggerClassName={chipSelectClasses}
+          />
         </div>
       </div>
 

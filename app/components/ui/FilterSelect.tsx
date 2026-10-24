@@ -1,3 +1,6 @@
+"use client";
+
+import Dropdown from "./Dropdown";
 import { selectClasses, withClasses } from "./form-controls";
 
 type FilterSelectProps<T extends string> = {
@@ -10,7 +13,13 @@ type FilterSelectProps<T extends string> = {
   disabled?: boolean;
 };
 
-/** Generic styled select used by every table filter bar. */
+/**
+ * Generic filter select used by every table filter bar and form section.
+ * Same props API as before, but backed by the themed Dropdown listbox so the
+ * open panel follows the dark/light theme instead of the OS select popup.
+ * A visible <label htmlFor> still works: the trigger is a real <button>,
+ * which is a labelable element.
+ */
 const FilterSelect = <T extends string>({
   id,
   ariaLabel,
@@ -21,20 +30,15 @@ const FilterSelect = <T extends string>({
   disabled,
 }: FilterSelectProps<T>) => {
   return (
-    <select
+    <Dropdown
       id={id}
-      aria-label={ariaLabel}
+      ariaLabel={ariaLabel}
       value={value}
+      options={options}
+      onChange={(nextValue) => onChange(nextValue as T)}
       disabled={disabled}
-      onChange={(event) => onChange(event.target.value as T)}
-      className={withClasses(selectClasses, className)}
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+      triggerClassName={withClasses(selectClasses, className)}
+    />
   );
 };
 
