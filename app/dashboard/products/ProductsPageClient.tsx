@@ -72,6 +72,7 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
     data: products = [],
     isLoading,
     isError,
+    isFetching,
     refetch,
   } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
 
@@ -171,7 +172,7 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
   if (isError) {
     return (
       <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
-        <ErrorState onRetry={() => void refetch()} />
+        <ErrorState onRetry={() => void refetch()} retrying={isFetching} />
       </div>
     );
   }

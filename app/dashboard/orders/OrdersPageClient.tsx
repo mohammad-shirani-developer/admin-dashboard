@@ -46,6 +46,7 @@ const OrdersPage = () => {
     data: orders = [],
     isLoading,
     isError,
+    isFetching,
     refetch,
   } = useQuery({ queryKey: ["orders"], queryFn: fetchOrders });
 
@@ -124,7 +125,7 @@ const OrdersPage = () => {
   if (isError) {
     return (
       <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
-        <ErrorState onRetry={() => void refetch()} />
+        <ErrorState onRetry={() => void refetch()} retrying={isFetching} />
       </div>
     );
   }

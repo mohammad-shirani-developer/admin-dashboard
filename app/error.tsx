@@ -1,11 +1,22 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
-import { primaryButtonClasses } from "@/app/components/ui/form-controls";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { startTransition, useTransition } from "react";
+import {
+  primaryButtonClasses,
+  secondaryButtonClasses,
+} from "@/app/components/ui/form-controls";
 
 /**
  * App-level error boundary styled like the dashboard ErrorState (mockup):
  * red alert icon, "Something went wrong!" message and a blue Retry button.
+ *
+ * Resetting alone never re-runs server components, so a failed server fetch
+ * would keep the boundary on screen forever. The retry therefore wraps
+ * router.refresh() (re-requests the RSC payload) plus reset() inside a
+ * transition, with a pending state on the button.
  */
 const AppError = ({
   error,
@@ -14,6 +25,16 @@ const AppError = ({
   error: Error & { digest?: string };
   reset: () => void;
 }) => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleRetry = () => {
+    startTransition(() => {
+      router.refresh();
+      reset();
+    });
+  };
+
   return (
     <div className="flex min-h-screen flex-1 items-center justify-center px-4">
       <div
@@ -43,11 +64,24 @@ const AppError = ({
 
         <button
           type="button"
-          onClick={reset}
+          onClick={handleRetry}
+          disabled={isPending}
           className={`mt-5 ${primaryButtonClasses}`}
         >
-          Retry
+          {isPending ? "Retrying..." : "Retry"}
         </button>
+
+        {/* Screen-reader + low-vision feedback while the retry is in flight. */}
+        <p
+          aria-live="polite"
+          className="min-h-5 text-xs text-gray-400 dark:text-gray-500"
+        >
+          {isPending ? "Reconnecting..." : ""}
+        </p>
+
+        <Link href="/dashboard" className={secondaryButtonClasses}>
+          Go to Dashboard
+        </Link>
       </div>
     </div>
   );

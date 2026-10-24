@@ -150,7 +150,14 @@ const DashboardPage = () => {
   if (isError) {
     return (
       <div className="mx-4 mt-6 sm:mx-6 lg:mx-8">
-        <ErrorState onRetry={retryAll} />
+        <ErrorState
+          onRetry={retryAll}
+          retrying={
+            productsQuery.isFetching ||
+            ordersQuery.isFetching ||
+            usersQuery.isFetching
+          }
+        />
       </div>
     );
   }

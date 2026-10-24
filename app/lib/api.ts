@@ -23,7 +23,10 @@ import type {
  * applied to the React Query cache only.
  */
 
-const DUMMYJSON_BASE_URL = "https://dummyjson.com";
+/* Server-side override for E2E failure simulations (e.g. pointing the API at
+   a dead host). Never inlined into client bundles: read only at request time. */
+const DUMMYJSON_BASE_URL =
+  process.env.DUMMYJSON_BASE_URL ?? "https://dummyjson.com";
 
 export class ApiError extends Error {
   readonly status?: number;
@@ -35,11 +38,28 @@ export class ApiError extends Error {
   }
 }
 
-async function fetchFromDummyJson<T>(path: string): Promise<T> {
+/* Hardened request pipeline: every call gets a hard timeout and up to three
+   attempts with a small backoff. Only transient failures (network errors and
+   5xx responses) are retried — 4xx answers fail fast because retrying them
+   cannot succeed. */
+const REQUEST_TIMEOUT_MS = 10_000;
+const RETRY_DELAYS_MS = [500, 1_000] as const;
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const isTransientError = (error: unknown): boolean =>
+  !(error instanceof ApiError) ||
+  error.status === undefined ||
+  error.status >= 500;
+
+async function requestOnce<T>(path: string): Promise<T> {
   let response: Response;
 
   try {
-    response = await fetch(`${DUMMYJSON_BASE_URL}${path}`);
+    response = await fetch(`${DUMMYJSON_BASE_URL}${path}`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
   } catch (cause) {
     throw new ApiError(
       `Network error while calling DummyJSON "${path}": ${
@@ -60,6 +80,28 @@ async function fetchFromDummyJson<T>(path: string): Promise<T> {
   } catch {
     throw new ApiError(`DummyJSON returned invalid JSON for "${path}".`);
   }
+}
+
+async function fetchFromDummyJson<T>(path: string): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+    if (attempt > 0) {
+      await sleep(RETRY_DELAYS_MS[attempt - 1]);
+    }
+
+    try {
+      return await requestOnce<T>(path);
+    } catch (error) {
+      lastError = error;
+
+      if (!isTransientError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 /* ----------------------------- raw API shapes ---------------------------- */
