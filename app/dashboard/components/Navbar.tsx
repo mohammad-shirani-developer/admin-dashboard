@@ -4,15 +4,17 @@ import { Menu, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { inputClasses, withClasses } from "@/app/components/ui/form-controls";
+import type { SessionUser } from "@/app/lib/session";
 import NotificationsMenu from "./NotificationsMenu";
 import ThemeToggle from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 
 type NavbarProps = {
   onMenuClick: () => void;
+  user: SessionUser | null;
 };
 
-const Navbar = ({ onMenuClick }: NavbarProps) => {
+const Navbar = ({ onMenuClick, user }: NavbarProps) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -60,7 +62,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
         <NotificationsMenu />
 
         {/* Account menu behind the avatar (the mockup chip's chevron now actually opens it). */}
-        <UserMenu />
+        <UserMenu user={user} />
 
         <ThemeToggle />
       </div>

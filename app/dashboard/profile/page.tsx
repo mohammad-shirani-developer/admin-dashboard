@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 import { Info, Mail, ShieldCheck } from "lucide-react";
+import { getSessionUser } from "@/app/lib/session";
 
 export const metadata: Metadata = { title: "Profile" };
 
 /**
- * Static demo profile — this project has no authentication, so the card shows
- * the demo administrator identity and says so honestly (no logout button, no
- * editable fields that would pretend to persist).
+ * Profile of the signed-in session user (decoded server-side from the
+ * httpOnly session cookie). Falls back to a generic demo identity when no
+ * session exists. The card still says the truth about persistence: DummyJSON
+ * is read-only, so nothing here can actually be edited.
  */
-const ProfilePage = () => {
+const ProfilePage = async () => {
+  const user = await getSessionUser();
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`.trim()
+    : "Demo account";
+  const email = user?.email || "demo@dummyjson.com";
+
   return (
     <div className="mx-4 mt-6 pb-6 sm:mx-6 lg:mx-8">
       <div className="mb-5">
@@ -30,17 +38,17 @@ const ProfilePage = () => {
             aria-hidden="true"
             className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-blue-600 text-3xl font-semibold text-white"
           >
-            M
+            {displayName.charAt(0).toUpperCase()}
           </span>
 
           <div className="mt-4 sm:mt-0 sm:ml-5">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Mohammad Shirani
+              {displayName}
             </h2>
 
             <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400">
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              Administrator
+              {user ? `@${user.username}` : "Administrator"}
             </p>
 
             <p className="mt-2 flex items-center justify-center gap-2 text-sm text-gray-600 sm:justify-start dark:text-gray-300">
@@ -48,7 +56,7 @@ const ProfilePage = () => {
                 className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500"
                 aria-hidden="true"
               />
-              <span className="break-all">mohammad-shirani-developer@users.noreply.github.com</span>
+              <span className="break-all">{email}</span>
             </p>
           </div>
         </div>
@@ -60,8 +68,9 @@ const ProfilePage = () => {
           />
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            This is a demo profile — no auth in this project. Data comes from the
-            public DummyJSON API and changes stay in the local query cache.
+            You are signed in with the demo account via the DummyJSON auth API.
+            Data comes from the public DummyJSON API and changes stay in the
+            local query cache.
           </p>
         </div>
       </section>
