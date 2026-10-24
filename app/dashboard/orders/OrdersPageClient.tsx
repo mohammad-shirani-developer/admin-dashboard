@@ -10,7 +10,7 @@ import {
 } from "@/app/components/ui/form-controls";
 import Pagination from "@/app/components/ui/Pagination";
 import usePagination from "@/app/hooks/usePagination";
-import { formatOrderId } from "../analytics";
+import { formatOrderId, formatUsd } from "../analytics";
 import ErrorState from "../components/ErrorState";
 import StatusBadge from "../components/StatusBadge";
 import TableSkeleton from "../components/TableSkeleton";
@@ -240,7 +240,7 @@ const OrdersPage = () => {
                 Total
               </p>
               <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-white">
-                ${Math.round(selectedOrder.amount).toLocaleString()}
+                {formatUsd(selectedOrder.amount)}
               </p>
             </div>
 

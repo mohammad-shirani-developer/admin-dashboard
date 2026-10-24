@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { withClasses } from "@/app/components/ui/form-controls";
 
 type SidebarProps = {
@@ -34,6 +35,37 @@ const SETTINGS_ITEMS = [
 
 const Sidebar = ({ isOpen, onNavigate }: SidebarProps) => {
   const pathname = usePathname();
+
+  /* Mobile drawer behavior: Escape closes it and the page behind the overlay
+     stops scrolling until it is closed (desktop keeps its permanent sidebar,
+     so the lock only applies below the lg breakpoint). */
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onNavigate?.();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen, onNavigate]);
 
   const isActive = (href: string) =>
     href === "/dashboard"

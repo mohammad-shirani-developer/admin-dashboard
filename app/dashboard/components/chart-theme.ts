@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import type { CSSProperties } from "react";
+import type { OrderStatus } from "../types";
 
 /**
  * Theme-aware recharts tokens. Colors follow the dashboard palette: light gray
@@ -47,3 +48,14 @@ export const useChartTheme = (): ChartTokens => {
 /** Shared axis tick style so every chart renders labels identically. */
 export const chartTickStyle = (tokens: ChartTokens) =>
   ({ fill: tokens.tickFill, fontSize: 12 }) as const;
+
+/**
+ * Donut hues from the mockup: emerald/blue/amber/red status palette. Single
+ * source so the chart, its legend and any future status chart stay in sync.
+ */
+export const ORDER_STATUS_CHART_COLORS: Record<OrderStatus, string> = {
+  Delivered: "#10b981",
+  Processing: "#3b82f6",
+  Pending: "#f59e0b",
+  Cancelled: "#ef4444",
+};

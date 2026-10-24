@@ -222,11 +222,17 @@ const ProductForm = ({
             type="text"
             placeholder="Enter product name"
             {...register("name")}
+            aria-invalid={errors.name ? true : undefined}
+            aria-describedby={
+              errors.name ? "product-name-error" : undefined
+            }
             className={inputClasses}
           />
 
           {errors.name && (
-            <p className={errorClasses}>{errors.name.message}</p>
+            <p id="product-name-error" className={errorClasses}>
+              {errors.name.message}
+            </p>
           )}
         </div>
 
@@ -236,6 +242,10 @@ const ProductForm = ({
           <select
             id="product-category"
             {...register("category")}
+            aria-invalid={errors.category ? true : undefined}
+            aria-describedby={
+              errors.category ? "product-category-error" : undefined
+            }
             className={withClasses(inputClasses, "text-gray-700 dark:text-gray-300")}
           >
             <option value="">Select category</option>
@@ -247,7 +257,9 @@ const ProductForm = ({
           </select>
 
           {errors.category && (
-            <p className={errorClasses}>{errors.category.message}</p>
+            <p id="product-category-error" className={errorClasses}>
+              {errors.category.message}
+            </p>
           )}
         </div>
 
@@ -261,11 +273,17 @@ const ProductForm = ({
             min="0"
             placeholder="Enter price"
             {...register("price")}
+            aria-invalid={errors.price ? true : undefined}
+            aria-describedby={
+              errors.price ? "product-price-error" : undefined
+            }
             className={inputClasses}
           />
 
           {errors.price && (
-            <p className={errorClasses}>{errors.price.message}</p>
+            <p id="product-price-error" className={errorClasses}>
+              {errors.price.message}
+            </p>
           )}
         </div>
 
@@ -279,11 +297,17 @@ const ProductForm = ({
             step="1"
             placeholder="Enter stock"
             {...register("stock")}
+            aria-invalid={errors.stock ? true : undefined}
+            aria-describedby={
+              errors.stock ? "product-stock-error" : undefined
+            }
             className={inputClasses}
           />
 
           {errors.stock && (
-            <p className={errorClasses}>{errors.stock.message}</p>
+            <p id="product-stock-error" className={errorClasses}>
+              {errors.stock.message}
+            </p>
           )}
         </div>
 
@@ -293,6 +317,10 @@ const ProductForm = ({
           <select
             id="product-status"
             {...register("status")}
+            aria-invalid={errors.status ? true : undefined}
+            aria-describedby={
+              errors.status ? "product-status-error" : undefined
+            }
             className={withClasses(inputClasses, "text-gray-700 dark:text-gray-300")}
           >
             <option value="">Select status</option>
@@ -304,7 +332,9 @@ const ProductForm = ({
           </select>
 
           {errors.status && (
-            <p className={errorClasses}>{errors.status.message}</p>
+            <p id="product-status-error" className={errorClasses}>
+              {errors.status.message}
+            </p>
           )}
         </div>
 
@@ -319,12 +349,18 @@ const ProductForm = ({
               type="url"
               placeholder="https://example.com/image.jpg"
               {...register("imageUrl")}
+              aria-invalid={errors.imageUrl ? true : undefined}
+              aria-describedby={
+                errors.imageUrl ? "product-image-url-error" : undefined
+              }
               className={inputClasses}
             />
           </div>
 
           {errors.imageUrl && (
-            <p className={errorClasses}>{errors.imageUrl.message}</p>
+            <p id="product-image-url-error" className={errorClasses}>
+              {errors.imageUrl.message}
+            </p>
           )}
         </div>
 
@@ -336,11 +372,17 @@ const ProductForm = ({
             rows={4}
             placeholder="Enter product description"
             {...register("description")}
+            aria-invalid={errors.description ? true : undefined}
+            aria-describedby={
+              errors.description ? "product-description-error" : undefined
+            }
             className={withClasses(inputClasses, "resize-none")}
           />
 
           {errors.description && (
-            <p className={errorClasses}>{errors.description.message}</p>
+            <p id="product-description-error" className={errorClasses}>
+              {errors.description.message}
+            </p>
           )}
         </div>
       </div>

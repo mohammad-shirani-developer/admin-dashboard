@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
+  title: {
+    default: "TechAdmin Dashboard",
+    template: "%s | TechAdmin",
+  },
   description:
     "TechAdmin — a modern admin dashboard for managing products, orders, users and customers.",
 };

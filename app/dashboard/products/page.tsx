@@ -3,8 +3,11 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
+import type { Metadata } from "next";
 import { fetchProducts } from "@/app/lib/api";
 import ProductsPageClient from "./ProductsPageClient";
+
+export const metadata: Metadata = { title: "Products" };
 
 type ProductsPageProps = {
   searchParams: Promise<{ q?: string | string[] }>;

@@ -1,6 +1,7 @@
 "use client";
 
 import Avatar from "@/app/components/ui/Avatar";
+import { formatUsd } from "../../analytics";
 import StatusBadge from "../../components/StatusBadge";
 import type { Customer } from "../../types";
 
@@ -13,29 +14,32 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <table className="w-full min-w-[700px] text-left text-sm">
+        <caption className="sr-only">
+          Customers with name, email, order count, total spent and status
+        </caption>
         <thead className="bg-gray-50 dark:bg-gray-800/50">
           <tr className="border-b border-gray-200 dark:border-gray-800">
-            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <th scope="col" className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
               Customer
             </th>
 
-            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <th scope="col" className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
               Email
             </th>
 
-            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <th scope="col" className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
               Orders
             </th>
 
-            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <th scope="col" className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
               Total Spent
             </th>
 
-            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <th scope="col" className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
               Status
             </th>
 
-            <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <th scope="col" className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
               Actions
             </th>
           </tr>
@@ -80,7 +84,7 @@ const CustomersTable = ({ customers, onView }: CustomersTableProps) => {
                 </td>
 
                 <td className="px-4 py-3 font-medium tabular-nums text-gray-900 dark:text-gray-100">
-                  ${Math.round(customer.totalSpent).toLocaleString()}
+                  {formatUsd(customer.totalSpent)}
                 </td>
 
                 <td className="px-4 py-3">

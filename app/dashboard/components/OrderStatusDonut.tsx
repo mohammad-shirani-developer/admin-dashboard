@@ -3,16 +3,8 @@
 import { Cell, Pie, PieChart, Tooltip } from "recharts";
 import { useMemo } from "react";
 import { orderStatusDistribution } from "../analytics";
-import type { Order, OrderStatus } from "../types";
-import { useChartTheme } from "./chart-theme";
-
-/** Donut hues from the mockup: emerald/blue/amber/red status palette. */
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  Delivered: "#10b981",
-  Processing: "#3b82f6",
-  Pending: "#f59e0b",
-  Cancelled: "#ef4444",
-};
+import type { Order } from "../types";
+import { ORDER_STATUS_CHART_COLORS, useChartTheme } from "./chart-theme";
 
 type OrderStatusDonutProps = {
   orders: Order[];
@@ -62,7 +54,7 @@ const OrderStatusDonut = ({ orders }: OrderStatusDonutProps) => {
                 {slices.map((slice) => (
                   <Cell
                     key={slice.status}
-                    fill={STATUS_COLORS[slice.status]}
+                    fill={ORDER_STATUS_CHART_COLORS[slice.status]}
                   />
                 ))}
               </Pie>
@@ -94,7 +86,9 @@ const OrderStatusDonut = ({ orders }: OrderStatusDonutProps) => {
                 <span className="flex items-center gap-2">
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: STATUS_COLORS[slice.status] }}
+                    style={{
+                      backgroundColor: ORDER_STATUS_CHART_COLORS[slice.status],
+                    }}
                     aria-hidden="true"
                   />
                   <span className="text-gray-600 dark:text-gray-300">

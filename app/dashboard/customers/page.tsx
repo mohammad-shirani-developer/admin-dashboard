@@ -3,8 +3,11 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
+import type { Metadata } from "next";
 import { fetchCustomers } from "@/app/lib/api";
 import CustomersPageClient from "./CustomersPageClient";
+
+export const metadata: Metadata = { title: "Customers" };
 
 /**
  * Server wrapper: prefetches the customers query with the SAME query key the

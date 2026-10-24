@@ -2,6 +2,7 @@
 
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import ProductThumbnail from "@/app/components/ui/ProductThumbnail";
+import { formatUsd } from "../../analytics";
 import { useEffect, useRef, useState } from "react";
 import useOutsideClick from "@/app/hooks/useOutsideClick";
 import { withClasses } from "@/app/components/ui/form-controls";
@@ -150,15 +151,18 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <table className="w-full min-w-[860px] text-left text-sm">
+        <caption className="sr-only">
+          Products with image, name, category, price, stock and status
+        </caption>
         <thead className="bg-gray-50 dark:bg-gray-800/50">
           <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            <th className="px-4 py-3 font-medium">Image</th>
-            <th className="px-4 py-3 font-medium">Name</th>
-            <th className="px-4 py-3 font-medium">Category</th>
-            <th className="px-4 py-3 font-medium">Price</th>
-            <th className="px-4 py-3 font-medium">Stock</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Actions</th>
+            <th scope="col" className="px-4 py-3 font-medium">Image</th>
+            <th scope="col" className="px-4 py-3 font-medium">Name</th>
+            <th scope="col" className="px-4 py-3 font-medium">Category</th>
+            <th scope="col" className="px-4 py-3 font-medium">Price</th>
+            <th scope="col" className="px-4 py-3 font-medium">Stock</th>
+            <th scope="col" className="px-4 py-3 font-medium">Status</th>
+            <th scope="col" className="px-4 py-3 font-medium">Actions</th>
           </tr>
         </thead>
 
@@ -185,7 +189,7 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
                 </td>
 
                 <td className="px-4 py-3 font-medium tabular-nums text-gray-900 dark:text-gray-100">
-                  ${product.price.toLocaleString()}
+                  {formatUsd(product.price)}
                 </td>
 
                 <td className="px-4 py-3 tabular-nums text-gray-600 dark:text-gray-400">

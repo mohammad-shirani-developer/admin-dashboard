@@ -18,13 +18,16 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <table className="w-full min-w-[700px] text-left text-sm">
+        <caption className="sr-only">
+          Users with name, email, role and status
+        </caption>
         <thead className="bg-gray-50 dark:bg-gray-800/50">
           <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            <th className="px-4 py-3 font-medium">Name</th>
-            <th className="px-4 py-3 font-medium">Email</th>
-            <th className="px-4 py-3 font-medium">Role</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Actions</th>
+            <th scope="col" className="px-4 py-3 font-medium">Name</th>
+            <th scope="col" className="px-4 py-3 font-medium">Email</th>
+            <th scope="col" className="px-4 py-3 font-medium">Role</th>
+            <th scope="col" className="px-4 py-3 font-medium">Status</th>
+            <th scope="col" className="px-4 py-3 font-medium">Actions</th>
           </tr>
         </thead>
 

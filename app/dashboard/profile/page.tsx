@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { Info, Mail, ShieldCheck } from "lucide-react";
+
+export const metadata: Metadata = { title: "Profile" };
 
 /**
  * Static demo profile — this project has no authentication, so the card shows

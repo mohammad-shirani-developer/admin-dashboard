@@ -8,6 +8,7 @@ import { fetchOrders, fetchProducts, fetchUsers } from "@/app/lib/api";
 import {
   daysAgoFromDateString,
   formatTrendPercent,
+  formatUsd,
 } from "./analytics";
 import ErrorState from "./components/ErrorState";
 import OrderStatusDonut from "./components/OrderStatusDonut";
@@ -131,7 +132,7 @@ const DashboardPage = () => {
       {
         id: "revenue" as const,
         title: "Total Revenue",
-        value: `$${Math.round(revenue).toLocaleString()}`,
+        value: formatUsd(revenue),
         change: revenueTrend ?? undefined,
       },
     ];

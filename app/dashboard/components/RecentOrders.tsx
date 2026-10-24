@@ -2,13 +2,10 @@
 
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { formatOrderId } from "../analytics";
+import { useEffect, useRef, useState } from "react";
+import { formatOrderId, formatUsd } from "../analytics";
 import StatusBadge from "./StatusBadge";
 import type { Order } from "../types";
-
-const formatAmount = (amount: number) =>
-  `$${Math.round(amount).toLocaleString()}`;
 
 type RecentOrdersProps = {
   orders: Order[];
@@ -17,10 +14,18 @@ type RecentOrdersProps = {
 const RecentOrders = ({ orders }: RecentOrdersProps) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  /* Focus management: the close button takes focus when the dialog opens and
+     the invoking "View Order" button gets it back when the dialog closes. */
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const lastTriggerRef = useRef<HTMLButtonElement | null>(null);
+
   useEffect(() => {
     if (!selectedOrder) {
+      lastTriggerRef.current?.focus();
       return;
     }
+
+    closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -34,6 +39,11 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedOrder]);
+
+  const openDetails = (order: Order, trigger: HTMLButtonElement) => {
+    lastTriggerRef.current = trigger;
+    setSelectedOrder(order);
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -52,14 +62,18 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
 
       <div className="mt-5 overflow-x-auto">
         <table className="w-full min-w-[700px] text-left text-sm">
+          <caption className="sr-only">
+            Recent orders with customer, product, amount and status
+          </caption>
+
           <thead>
             <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-              <th className="px-4 py-3 font-medium">Order ID</th>
-              <th className="px-4 py-3 font-medium">Customer</th>
-              <th className="px-4 py-3 font-medium">Product</th>
-              <th className="px-4 py-3 font-medium">Amount</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Action</th>
+              <th scope="col" className="px-4 py-3 font-medium">Order ID</th>
+              <th scope="col" className="px-4 py-3 font-medium">Customer</th>
+              <th scope="col" className="px-4 py-3 font-medium">Product</th>
+              <th scope="col" className="px-4 py-3 font-medium">Amount</th>
+              <th scope="col" className="px-4 py-3 font-medium">Status</th>
+              <th scope="col" className="px-4 py-3 font-medium">Action</th>
             </tr>
           </thead>
 
@@ -80,7 +94,7 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
                     {order.product}
                   </td>
                   <td className="px-4 py-3 font-medium tabular-nums text-gray-900 dark:text-gray-100">
-                    {formatAmount(order.amount)}
+                    {formatUsd(order.amount)}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />
@@ -89,7 +103,9 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => setSelectedOrder(order)}
+                      onClick={(event) =>
+                        openDetails(order, event.currentTarget)
+                      }
                       className="rounded text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 dark:text-blue-400 dark:hover:text-blue-300 dark:focus-visible:ring-offset-gray-900"
                     >
                       View Order
@@ -129,16 +145,23 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
           onClick={() => setSelectedOrder(null)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recent-order-details-title"
             className="w-full max-w-xl rounded-xl border border-gray-200 bg-white p-5 shadow-lg dark:border-gray-800 dark:bg-gray-900"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3
+                id="recent-order-details-title"
+                className="text-lg font-semibold text-gray-900 dark:text-white"
+              >
                 Order Details
               </h3>
 
               <button
                 type="button"
+                ref={closeButtonRef}
                 onClick={() => setSelectedOrder(null)}
                 className="rounded-md px-2 py-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 aria-label="Close order details"
@@ -180,7 +203,7 @@ const RecentOrders = ({ orders }: RecentOrdersProps) => {
                   Amount
                 </p>
                 <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
-                  {formatAmount(selectedOrder.amount)}
+                  {formatUsd(selectedOrder.amount)}
                 </p>
               </div>
 
