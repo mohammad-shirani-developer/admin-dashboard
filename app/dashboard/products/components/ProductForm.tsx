@@ -101,7 +101,6 @@ export type ProductFormSubmitValues = {
 
 type ProductFormProps = {
   initialProduct?: Product | null;
-  submitLabel?: string;
   /** Set while the wrapping mutation is in flight — disables the submit. */
   submitting?: boolean;
   /** Server/mutation error shown inside the form (the caller owns it). */
@@ -147,7 +146,6 @@ const ProductImagePreview = ({ src }: { src: string }) => {
 
 const ProductForm = ({
   initialProduct = null,
-  submitLabel,
   submitting = false,
   submitError = null,
   onSubmit,
@@ -423,7 +421,7 @@ const ProductForm = ({
             ? initialProduct
               ? "Saving..."
               : "Creating..."
-            : (submitLabel ?? (initialProduct ? "Update Product" : "Save Product"))}
+            : (initialProduct ? "Update Product" : "Save Product")}
         </button>
       </div>
     </form>

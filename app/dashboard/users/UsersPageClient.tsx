@@ -131,7 +131,6 @@ const PageUsers = () => {
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: ["users"] });
 
-      const previousUsers = queryClient.getQueryData<User[]>(["users"]);
       const optimisticId = -Date.now();
 
       queryClient.setQueryData<User[]>(["users"], (old = []) => [
@@ -139,24 +138,29 @@ const PageUsers = () => {
         ...old,
       ]);
 
-      return { previousUsers, optimisticId };
+      return { optimisticId };
     },
     onSuccess: (createdUser, _input, context) => {
-      // Swap the optimistic row for the server-created one (real id).
+      // Swap the optimistic row for the created one (unique local id).
       queryClient.setQueryData<User[]>(["users"], (old = []) =>
         old.map((user) =>
           user.id === context?.optimisticId ? createdUser : user,
         ),
       );
 
+      // The optimistic row is prepended, so it always lands on page 1.
+      setPage(1);
       setEditingUser(null);
       resetForm();
       setIsFormOpen(false);
     },
     onError: (_error, _input, context) => {
-      if (context?.previousUsers) {
-        queryClient.setQueryData<User[]>(["users"], context.previousUsers);
-      }
+      /* Narrow rollback: only the optimistic row is removed. Restoring a
+         whole-list snapshot here would silently revert an unrelated
+         mutation that succeeded while this create was in flight. */
+      queryClient.setQueryData<User[]>(["users"], (old = []) =>
+        old.filter((user) => user.id !== context?.optimisticId),
+      );
 
       // The form stays open with the values intact so nothing is retyped.
       setFormError("Could not create the user. Please try again.");
@@ -168,13 +172,16 @@ const PageUsers = () => {
     onMutate: async (updatedUser) => {
       await queryClient.cancelQueries({ queryKey: ["users"] });
 
-      const previousUsers = queryClient.getQueryData<User[]>(["users"]);
+      // Snapshot only the affected row — not the whole list.
+      const previousUser = queryClient
+        .getQueryData<User[]>(["users"])
+        ?.find((user) => user.id === updatedUser.id);
 
       queryClient.setQueryData<User[]>(["users"], (old = []) =>
         old.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
       );
 
-      return { previousUsers };
+      return { previousUser };
     },
     onSuccess: (savedUser) => {
       queryClient.setQueryData<User[]>(["users"], (old = []) =>
@@ -186,8 +193,17 @@ const PageUsers = () => {
       setIsFormOpen(false);
     },
     onError: (_error, _updatedUser, context) => {
-      if (context?.previousUsers) {
-        queryClient.setQueryData<User[]>(["users"], context.previousUsers);
+      /* Narrow rollback: only the edited row reverts. A wholesale snapshot
+         restore would also revert unrelated mutations that succeeded while
+         this save was in flight. */
+      if (context?.previousUser) {
+        const previousUser = context.previousUser;
+
+        queryClient.setQueryData<User[]>(["users"], (old = []) =>
+          old.map((user) =>
+            user.id === previousUser.id ? previousUser : user,
+          ),
+        );
       }
 
       setFormError("Could not save the changes. Please try again.");
@@ -199,7 +215,10 @@ const PageUsers = () => {
     onMutate: async (user) => {
       await queryClient.cancelQueries({ queryKey: ["users"] });
 
-      const previousUsers = queryClient.getQueryData<User[]>(["users"]);
+      const oldUsers = queryClient.getQueryData<User[]>(["users"]) ?? [];
+      const deletedAtIndex = oldUsers.findIndex(
+        (candidate) => candidate.id === user.id,
+      );
 
       queryClient.setQueryData<User[]>(["users"], (old = []) =>
         old.filter((candidate) => candidate.id !== user.id),
@@ -208,11 +227,29 @@ const PageUsers = () => {
       setDeletingUser(null);
       setDeleteError(null);
 
-      return { previousUsers, deletedUser: user };
+      return { deletedUser: user, deletedAtIndex };
     },
     onError: (_error, _user, context) => {
-      if (context?.previousUsers) {
-        queryClient.setQueryData<User[]>(["users"], context.previousUsers);
+      if (context?.deletedUser) {
+        /* Narrow rollback: re-insert only the deleted row at its original
+           position instead of restoring the whole pre-delete snapshot. */
+        queryClient.setQueryData<User[]>(["users"], (old = []) => {
+          if (
+            old.some((candidate) => candidate.id === context.deletedUser.id)
+          ) {
+            return old;
+          }
+
+          const restored = [...old];
+
+          restored.splice(
+            Math.min(context.deletedAtIndex, restored.length),
+            0,
+            context.deletedUser,
+          );
+
+          return restored;
+        });
       }
 
       setDeleteError(
@@ -263,7 +300,7 @@ const PageUsers = () => {
       return false;
     }
 
-    if (!email.includes("@")) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setFormError("Please enter a valid email.");
       return false;
     }
@@ -427,7 +464,11 @@ const PageUsers = () => {
           </h2>
 
           {formError && (
-            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+            <p
+              role="alert"
+              id="user-form-error"
+              className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400"
+            >
               {formError}
             </p>
           )}
@@ -448,6 +489,8 @@ const PageUsers = () => {
                   setName(e.target.value);
                   setFormError("");
                 }}
+                aria-invalid={Boolean(formError) || undefined}
+                aria-describedby={formError ? "user-form-error" : undefined}
                 className={inputClasses}
                 placeholder="Enter name"
               />
@@ -465,6 +508,8 @@ const PageUsers = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(formError) || undefined}
+                aria-describedby={formError ? "user-form-error" : undefined}
                 className={inputClasses}
                 placeholder="Enter email"
               />

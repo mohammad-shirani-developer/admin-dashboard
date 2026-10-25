@@ -1,11 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { AlertCircle } from "lucide-react";
-import {
-  primaryButtonClasses,
-  secondaryButtonClasses,
-} from "@/app/components/ui/form-controls";
+import { primaryButtonClasses } from "@/app/components/ui/form-controls";
 
 type ErrorStateProps = {
   title?: string;
@@ -13,9 +9,6 @@ type ErrorStateProps = {
   onRetry?: () => void;
   /** True while the retry request is in flight — the button shows it. */
   retrying?: boolean;
-  /** Optional escape hatch shown as a secondary link under the retry button. */
-  homeHref?: string;
-  homeLabel?: string;
 };
 
 const ErrorState = ({
@@ -23,8 +16,6 @@ const ErrorState = ({
   message = "Failed to load data. Please try again.",
   onRetry,
   retrying = false,
-  homeHref,
-  homeLabel = "Go to Dashboard",
 }: ErrorStateProps) => {
   return (
     <div
@@ -61,12 +52,6 @@ const ErrorState = ({
       <p aria-live="polite" className="min-h-5 text-xs text-gray-400 dark:text-gray-500">
         {retrying ? "Reconnecting..." : ""}
       </p>
-
-      {homeHref && (
-        <Link href={homeHref} className={secondaryButtonClasses}>
-          {homeLabel}
-        </Link>
-      )}
     </div>
   );
 };

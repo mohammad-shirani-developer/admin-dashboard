@@ -119,9 +119,6 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: ["products"] });
 
-      const previousProducts = queryClient.getQueryData<Product[]>([
-        "products",
-      ]);
       const optimisticId = -Date.now();
 
       queryClient.setQueryData<Product[]>(["products"], (old = []) => [
@@ -138,25 +135,27 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
         ...old,
       ]);
 
-      return { previousProducts, optimisticId };
+      return { optimisticId };
     },
     onSuccess: (createdProduct, _input, context) => {
-      // Swap the optimistic row for the server-created one (real id).
+      // Swap the optimistic row for the created one (unique local id).
       queryClient.setQueryData<Product[]>(["products"], (old = []) =>
         old.map((product) =>
           product.id === context?.optimisticId ? createdProduct : product,
         ),
       );
 
+      // The optimistic row is prepended, so it always lands on page 1.
+      setPage(1);
       handleCloseForm();
     },
     onError: (_error, _input, context) => {
-      if (context?.previousProducts) {
-        queryClient.setQueryData<Product[]>(
-          ["products"],
-          context.previousProducts,
-        );
-      }
+      /* Narrow rollback: only the optimistic row is removed. Restoring a
+         whole-list snapshot here would silently revert an unrelated
+         mutation that succeeded while this create was in flight. */
+      queryClient.setQueryData<Product[]>(["products"], (old = []) =>
+        old.filter((product) => product.id !== context?.optimisticId),
+      );
 
       // The form stays open with the values intact so nothing is retyped.
       setSubmitError("Could not create the product. Please try again.");
@@ -168,9 +167,10 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
     onMutate: async (updatedProduct) => {
       await queryClient.cancelQueries({ queryKey: ["products"] });
 
-      const previousProducts = queryClient.getQueryData<Product[]>([
-        "products",
-      ]);
+      // Snapshot only the affected row — not the whole list.
+      const previousProduct = queryClient
+        .getQueryData<Product[]>(["products"])
+        ?.find((product) => product.id === updatedProduct.id);
 
       queryClient.setQueryData<Product[]>(["products"], (old = []) =>
         old.map((product) =>
@@ -178,7 +178,7 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
         ),
       );
 
-      return { previousProducts };
+      return { previousProduct };
     },
     onSuccess: (savedProduct) => {
       queryClient.setQueryData<Product[]>(["products"], (old = []) =>
@@ -190,10 +190,16 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
       handleCloseForm();
     },
     onError: (_error, _updatedProduct, context) => {
-      if (context?.previousProducts) {
-        queryClient.setQueryData<Product[]>(
-          ["products"],
-          context.previousProducts,
+      /* Narrow rollback: only the edited row reverts. A wholesale snapshot
+         restore would also revert unrelated mutations that succeeded while
+         this save was in flight. */
+      if (context?.previousProduct) {
+        const previousProduct = context.previousProduct;
+
+        queryClient.setQueryData<Product[]>(["products"], (old = []) =>
+          old.map((product) =>
+            product.id === previousProduct.id ? previousProduct : product,
+          ),
         );
       }
 
@@ -206,9 +212,12 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
     onMutate: async (product) => {
       await queryClient.cancelQueries({ queryKey: ["products"] });
 
-      const previousProducts = queryClient.getQueryData<Product[]>([
+      const oldProducts = queryClient.getQueryData<Product[]>([
         "products",
       ]);
+      const deletedAtIndex = (oldProducts ?? []).findIndex(
+        (candidate) => candidate.id === product.id,
+      );
 
       queryClient.setQueryData<Product[]>(["products"], (old = []) =>
         old.filter((candidate) => candidate.id !== product.id),
@@ -217,14 +226,31 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
       setDeletingProduct(null);
       setDeleteError(null);
 
-      return { previousProducts, deletedProduct: product };
+      return { deletedProduct: product, deletedAtIndex };
     },
     onError: (_error, _product, context) => {
-      if (context?.previousProducts) {
-        queryClient.setQueryData<Product[]>(
-          ["products"],
-          context.previousProducts,
-        );
+      if (context?.deletedProduct) {
+        /* Narrow rollback: re-insert only the deleted row at its original
+           position instead of restoring the whole pre-delete snapshot. */
+        queryClient.setQueryData<Product[]>(["products"], (old = []) => {
+          if (
+            old.some(
+              (candidate) => candidate.id === context.deletedProduct.id,
+            )
+          ) {
+            return old;
+          }
+
+          const restored = [...old];
+
+          restored.splice(
+            Math.min(context.deletedAtIndex, restored.length),
+            0,
+            context.deletedProduct,
+          );
+
+          return restored;
+        });
       }
 
       setDeleteError(
@@ -354,7 +380,7 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
               onClick={() => setDeletingProduct(null)}
               className={withClasses(
                 secondaryButtonClasses,
-                "w-full border-white sm:w-auto dark:border-gray-700",
+                "w-full sm:w-auto dark:border-gray-700",
               )}
             >
               Cancel

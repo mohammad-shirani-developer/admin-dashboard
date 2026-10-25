@@ -388,10 +388,32 @@ async function writeToDummyJson<T>(
 
 /* DummyJSON's fake database never persists writes: an entity created this
    session gets a real server id, but a later PUT/DELETE for that id answers
-   404. Those ids are registered here and their edits/deletes stay cache-only,
-   while every original DummyJSON entity goes through a real request. */
+   404. Those entities are registered here and their edits/deletes stay
+   cache-only, while every original DummyJSON entity goes through a real
+   request. */
 const locallyCreatedUserIds = new Set<number>();
 const locallyCreatedProductIds = new Set<number>();
+
+/* Worse: the fake DB hands out the SAME id for every create (curl-verified:
+   209 for users, 195 for products), so a second create in one session would
+   collide with the first — duplicate React keys, and an edit or delete of
+   one row silently hitting both. Created entities therefore get a unique
+   negative client id; the server's echoed id is never used as identity. */
+let localEntityIdCounter = 0;
+
+const nextLocalEntityId = (): number => {
+  localEntityIdCounter -= 1;
+
+  return localEntityIdCounter;
+};
+
+/** Clears both session-created registries. Called on sign-out together
+ *  with queryClient.clear() so optimistic rows can never leak into the
+ *  next sign-in as phantom entities. */
+export const resetSessionRegistry = () => {
+  locallyCreatedUserIds.clear();
+  locallyCreatedProductIds.clear();
+};
 
 const splitDisplayName = (name: string) => {
   const [firstName, ...rest] = name.trim().split(/\s+/);
@@ -407,18 +429,20 @@ export const createUser = async (
 ): Promise<User> => {
   const { firstName, lastName } = splitDisplayName(input.name);
 
-  const raw = await writeToDummyJson<ApiUser>("/users/add", "POST", {
+  await writeToDummyJson<ApiUser>("/users/add", "POST", {
     firstName,
     lastName,
     email: input.email,
   });
 
-  locallyCreatedUserIds.add(raw.id);
+  const localId = nextLocalEntityId();
+
+  locallyCreatedUserIds.add(localId);
 
   /* The fake endpoint echoes role "user" and has no status field — the
      values the admin picked in the form stay authoritative. */
   return {
-    id: raw.id,
+    id: localId,
     name: input.name.trim(),
     email: input.email,
     role: input.role,
@@ -475,7 +499,7 @@ export type ProductWriteInput = Pick<
 export const createProduct = async (
   input: ProductWriteInput,
 ): Promise<Product> => {
-  const raw = await writeToDummyJson<ApiProduct>("/products/add", "POST", {
+  await writeToDummyJson<ApiProduct>("/products/add", "POST", {
     title: input.name,
     description: input.description ?? "",
     price: input.price,
@@ -483,10 +507,12 @@ export const createProduct = async (
     category: CATEGORY_SLUG_BY_DOMAIN[input.category],
   });
 
-  locallyCreatedProductIds.add(raw.id);
+  const localId = nextLocalEntityId();
+
+  locallyCreatedProductIds.add(localId);
 
   return {
-    id: raw.id,
+    id: localId,
     name: input.name,
     price: input.price,
     category: input.category,

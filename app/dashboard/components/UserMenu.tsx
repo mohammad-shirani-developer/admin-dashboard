@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import useOutsideClick from "@/app/hooks/useOutsideClick";
+import { useQueryClient } from "@tanstack/react-query";
+import { resetSessionRegistry } from "@/app/lib/api";
 import type { SessionUser } from "@/app/lib/session";
 
 type UserMenuProps = {
@@ -49,6 +51,8 @@ const UserMenu = ({ user }: UserMenuProps) => {
   const displayName = user ? `${user.firstName} ${user.lastName}`.trim() : "Demo account";
   const initials = displayName.charAt(0).toUpperCase() || "?";
 
+  const queryClient = useQueryClient();
+
   const handleSignOut = async () => {
     if (isSigningOut) {
       return;
@@ -58,6 +62,14 @@ const UserMenu = ({ user }: UserMenuProps) => {
 
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+
+      /* Sign-out is a SPA navigation (no page reload), so the React Query
+         cache and the session-created registries would otherwise survive
+         and leak the previous session's optimistic rows into the next
+         sign-in as phantom entities. */
+      queryClient.clear();
+      resetSessionRegistry();
+
       router.replace("/login");
     } catch {
       /* The cookie survives only if the call failed; let the user retry. */

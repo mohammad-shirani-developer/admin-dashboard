@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/customers", label: "Customers", icon: UsersRound },
 ];
 
-/** Settings group from the mockup — Profile only, there is no auth to log out. */
+/** Settings group from the mockup — Profile only; sign-out lives in the navbar's account menu. */
 const SETTINGS_ITEMS = [
   { href: "/dashboard/profile", label: "Profile", icon: UserRound },
 ];
