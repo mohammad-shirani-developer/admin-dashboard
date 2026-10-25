@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import FilterSelect from "@/app/components/ui/FilterSelect";
 import {
@@ -15,7 +15,8 @@ import usePagination from "@/app/hooks/usePagination";
 import type { UserRole, UserStatus } from "@/app/dashboard/types";
 import ErrorState from "../components/ErrorState";
 import TableSkeleton from "../components/TableSkeleton";
-import { fetchUsers } from "@/app/lib/api";
+import { createUser, deleteUser, fetchUsers, updateUser } from "@/app/lib/api";
+import type { UserWriteInput } from "@/app/lib/api";
 import type { User } from "../types";
 import UsersTable from "./components/UsersTable";
 
@@ -42,14 +43,14 @@ const USER_STATUS_OPTIONS: ReadonlyArray<{ value: UserStatus; label: string }> =
 const USERS_PAGE_SIZE = 8;
 
 /**
- * DummyJSON is a read-only API — created/updated/deleted users live only in
- * the React Query cache, with ids coming from a module-level counter.
+ * Mutations hit the real DummyJSON write endpoints (POST /users/add,
+ * PUT/DELETE /users/:id) and every list change is applied optimistically:
+ * the cache updates before the request, so the UI reacts instantly, and a
+ * failed request rolls the snapshot back instead of leaving the table in a
+ * state the server never confirmed. Entities created this session stay
+ * cache-only afterwards — DummyJSON's fake database would 404 them (see
+ * api.ts) — while original entities are really written.
  */
-let createdUserCount = 0;
-const nextCreatedUserId = () => {
-  createdUserCount += 1;
-  return 900000 + createdUserCount;
-};
 
 const PageUsers = () => {
   const queryClient = useQueryClient();
@@ -74,6 +75,8 @@ const PageUsers = () => {
   const [sort, setSort] = useState<UserSort>("default");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
 
@@ -120,6 +123,103 @@ const PageUsers = () => {
     setPage,
     totalItems,
   } = usePagination(filteredUsers, USERS_PAGE_SIZE);
+
+  /* ------------------------------ mutations ------------------------------ */
+
+  const createUserMutation = useMutation({
+    mutationFn: (input: UserWriteInput) => createUser(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: ["users"] });
+
+      const previousUsers = queryClient.getQueryData<User[]>(["users"]);
+      const optimisticId = -Date.now();
+
+      queryClient.setQueryData<User[]>(["users"], (old = []) => [
+        { id: optimisticId, ...input },
+        ...old,
+      ]);
+
+      return { previousUsers, optimisticId };
+    },
+    onSuccess: (createdUser, _input, context) => {
+      // Swap the optimistic row for the server-created one (real id).
+      queryClient.setQueryData<User[]>(["users"], (old = []) =>
+        old.map((user) =>
+          user.id === context?.optimisticId ? createdUser : user,
+        ),
+      );
+
+      setEditingUser(null);
+      resetForm();
+      setIsFormOpen(false);
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData<User[]>(["users"], context.previousUsers);
+      }
+
+      // The form stays open with the values intact so nothing is retyped.
+      setFormError("Could not create the user. Please try again.");
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: (user: User) => updateUser(user),
+    onMutate: async (updatedUser) => {
+      await queryClient.cancelQueries({ queryKey: ["users"] });
+
+      const previousUsers = queryClient.getQueryData<User[]>(["users"]);
+
+      queryClient.setQueryData<User[]>(["users"], (old = []) =>
+        old.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
+      );
+
+      return { previousUsers };
+    },
+    onSuccess: (savedUser) => {
+      queryClient.setQueryData<User[]>(["users"], (old = []) =>
+        old.map((user) => (user.id === savedUser.id ? savedUser : user)),
+      );
+
+      setEditingUser(null);
+      resetForm();
+      setIsFormOpen(false);
+    },
+    onError: (_error, _updatedUser, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData<User[]>(["users"], context.previousUsers);
+      }
+
+      setFormError("Could not save the changes. Please try again.");
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (user: User) => deleteUser(user),
+    onMutate: async (user) => {
+      await queryClient.cancelQueries({ queryKey: ["users"] });
+
+      const previousUsers = queryClient.getQueryData<User[]>(["users"]);
+
+      queryClient.setQueryData<User[]>(["users"], (old = []) =>
+        old.filter((candidate) => candidate.id !== user.id),
+      );
+
+      setDeletingUser(null);
+      setDeleteError(null);
+
+      return { previousUsers, deletedUser: user };
+    },
+    onError: (_error, _user, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData<User[]>(["users"], context.previousUsers);
+      }
+
+      setDeleteError(
+        `Could not delete ${context?.deletedUser.name ?? "the user"}. The list was restored — please try again.`,
+      );
+    },
+  });
 
   // Every filter change sends the user back to the first page.
   const handleSearchChange = (value: string) => {
@@ -177,20 +277,14 @@ const PageUsers = () => {
       return;
     }
 
-    // DummyJSON is read-only — the new user is added to the query cache only.
-    queryClient.setQueryData<User[]>(["users"], (previous = []) => [
-      {
-        id: nextCreatedUserId(),
-        name: name.trim(),
-        email: email.trim(),
-        role,
-        status,
-      },
-      ...previous,
-    ]);
-
-    resetForm();
-    setIsFormOpen(false);
+    // Optimistic: the row appears instantly and is replaced by the
+    // server-created user (real id) once POST /users/add answers.
+    createUserMutation.mutate({
+      name: name.trim(),
+      email: email.trim(),
+      role,
+      status,
+    });
   };
 
   const handleEditUser = (user: User) => {
@@ -203,32 +297,19 @@ const PageUsers = () => {
   };
 
   const handleUpdateUser = () => {
-    if (!editingUser) {
+    if (!editingUser || !validateForm()) {
       return;
     }
 
-    if (!validateForm()) {
-      return;
-    }
-
-    // DummyJSON is read-only — the edit is applied to the query cache only.
-    queryClient.setQueryData<User[]>(["users"], (previous = []) =>
-      previous.map((user) =>
-        user.id === editingUser.id
-          ? {
-              ...user,
-              name: name.trim(),
-              email: email.trim(),
-              role,
-              status,
-            }
-          : user,
-      ),
-    );
-
-    setEditingUser(null);
-    resetForm();
-    setIsFormOpen(false);
+    // Optimistic: the edit applies to the table at once; a failed PUT
+    // rolls the row back and reopens the error inside the form.
+    updateUserMutation.mutate({
+      ...editingUser,
+      name: name.trim(),
+      email: email.trim(),
+      role,
+      status,
+    });
   };
 
   const handleDeleteUser = (user: User) => {
@@ -240,12 +321,9 @@ const PageUsers = () => {
       return;
     }
 
-    // DummyJSON is read-only — the delete is applied to the query cache only.
-    queryClient.setQueryData<User[]>(["users"], (previous = []) =>
-      previous.filter((user) => user.id !== deletingUser.id),
-    );
-
-    setDeletingUser(null);
+    // Optimistic: the row disappears at once; a failed DELETE restores it
+    // and surfaces the error above the table.
+    deleteUserMutation.mutate(deletingUser);
   };
 
   if (isLoading) {
@@ -439,10 +517,17 @@ const PageUsers = () => {
 
               <button
                 type="button"
+                disabled={createUserMutation.isPending || updateUserMutation.isPending}
                 onClick={editingUser ? handleUpdateUser : handleAddUser}
-                className={withClasses(primaryButtonClasses, "w-full sm:w-auto")}
+                className={withClasses(primaryButtonClasses, "w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto")}
               >
-                {editingUser ? "Update User" : "Create User"}
+                {editingUser
+                  ? updateUserMutation.isPending
+                    ? "Saving..."
+                    : "Update User"
+                  : createUserMutation.isPending
+                    ? "Creating..."
+                    : "Create User"}
               </button>
             </div>
           </div>
@@ -471,12 +556,30 @@ const PageUsers = () => {
 
             <button
               type="button"
-              className={withClasses(dangerButtonClasses, "w-full sm:w-auto")}
+              disabled={deleteUserMutation.isPending}
+              className={withClasses(dangerButtonClasses, "w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto")}
               onClick={handleConfirmDelete}
             >
-              Delete User
+              {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
             </button>
           </div>
+        </div>
+      )}
+
+      {deleteError && (
+        <div
+          className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+          role="alert"
+        >
+          <span>{deleteError}</span>
+
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            className="font-semibold underline underline-offset-2"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 

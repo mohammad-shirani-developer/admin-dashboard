@@ -328,3 +328,210 @@ export const fetchCustomers = async (): Promise<Customer[]> => {
 
   return usersResponse.users.map((raw) => mapApiCustomer(raw, salesByUserId));
 };
+
+/* ------------------------------- mutations ------------------------------- */
+
+const CATEGORY_SLUG_BY_DOMAIN: Record<ProductCategory, string> = {
+  Laptop: "laptops",
+  Phone: "smartphones",
+  Headphones: "mobile-accessories",
+};
+
+const API_ROLE_BY_DOMAIN: Record<User["role"], string> = {
+  Admin: "admin",
+  Manager: "moderator",
+  User: "user",
+};
+
+/* Write pipeline: exactly ONE attempt. Unlike reads, a write must never be
+   retried automatically — a retried POST could create duplicate entities.
+   Any failure surfaces to the mutation, which rolls the optimistic cache
+   update back so the UI never lies about what the server accepted. */
+async function writeToDummyJson<T>(
+  path: string,
+  method: "POST" | "PUT" | "DELETE",
+  body?: unknown,
+): Promise<T> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${DUMMYJSON_BASE_URL}${path}`, {
+      method,
+      headers:
+        body === undefined
+          ? undefined
+          : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (cause) {
+    throw new ApiError(
+      `Network error while calling DummyJSON "${method} ${path}": ${
+        cause instanceof Error ? cause.message : "unknown error"
+      }`,
+    );
+  }
+
+  if (!response.ok) {
+    throw new ApiError(
+      `DummyJSON write failed for "${method} ${path}" with status ${response.status}.`,
+      response.status,
+    );
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError(`DummyJSON returned invalid JSON for "${path}".`);
+  }
+}
+
+/* DummyJSON's fake database never persists writes: an entity created this
+   session gets a real server id, but a later PUT/DELETE for that id answers
+   404. Those ids are registered here and their edits/deletes stay cache-only,
+   while every original DummyJSON entity goes through a real request. */
+const locallyCreatedUserIds = new Set<number>();
+const locallyCreatedProductIds = new Set<number>();
+
+const splitDisplayName = (name: string) => {
+  const [firstName, ...rest] = name.trim().split(/\s+/);
+
+  return { firstName: firstName || "Unknown", lastName: rest.join(" ") || "-" };
+};
+
+export type UserWriteInput = Pick<User, "name" | "email" | "role" | "status">;
+
+/** POST /users/add — DummyJSON returns the created user with a server id. */
+export const createUser = async (
+  input: UserWriteInput,
+): Promise<User> => {
+  const { firstName, lastName } = splitDisplayName(input.name);
+
+  const raw = await writeToDummyJson<ApiUser>("/users/add", "POST", {
+    firstName,
+    lastName,
+    email: input.email,
+  });
+
+  locallyCreatedUserIds.add(raw.id);
+
+  /* The fake endpoint echoes role "user" and has no status field — the
+     values the admin picked in the form stay authoritative. */
+  return {
+    id: raw.id,
+    name: input.name.trim(),
+    email: input.email,
+    role: input.role,
+    status: input.status,
+  };
+};
+
+/** PUT /users/:id — real request for original entities, cache-only for
+ *  session-created ones (the fake DB would answer 404). */
+export const updateUser = async (user: User): Promise<User> => {
+  if (locallyCreatedUserIds.has(user.id)) {
+    return user;
+  }
+
+  const { firstName, lastName } = splitDisplayName(user.name);
+
+  const raw = await writeToDummyJson<ApiUser>(`/users/${user.id}`, "PUT", {
+    firstName,
+    lastName,
+    email: user.email,
+    role: API_ROLE_BY_DOMAIN[user.role],
+  });
+
+  return {
+    ...mapApiUser(raw),
+    name: user.name.trim(),
+    email: user.email,
+    role: user.role,
+    status: user.status,
+  };
+};
+
+/** DELETE /users/:id — same split as update. */
+export const deleteUser = async (user: User): Promise<void> => {
+  if (locallyCreatedUserIds.has(user.id)) {
+    return;
+  }
+
+  await writeToDummyJson<ApiUser & { isDeleted?: boolean }>(
+    `/users/${user.id}`,
+    "DELETE",
+  );
+};
+
+export type ProductWriteInput = Pick<
+  Product,
+  "name" | "price" | "category" | "stock" | "status"
+> & {
+  description?: string;
+  imageUrl?: string;
+};
+
+/** POST /products/add — returns the created product with a server id. */
+export const createProduct = async (
+  input: ProductWriteInput,
+): Promise<Product> => {
+  const raw = await writeToDummyJson<ApiProduct>("/products/add", "POST", {
+    title: input.name,
+    description: input.description ?? "",
+    price: input.price,
+    stock: input.stock,
+    category: CATEGORY_SLUG_BY_DOMAIN[input.category],
+  });
+
+  locallyCreatedProductIds.add(raw.id);
+
+  return {
+    id: raw.id,
+    name: input.name,
+    price: input.price,
+    category: input.category,
+    stock: input.stock,
+    status: input.status,
+    description: input.description || undefined,
+    thumbnail: input.imageUrl || undefined,
+  };
+};
+
+/** PUT /products/:id — real request for original entities, cache-only for
+ *  session-created ones. Status is always re-derived from stock. */
+export const updateProduct = async (product: Product): Promise<Product> => {
+  if (locallyCreatedProductIds.has(product.id)) {
+    return product;
+  }
+
+  const raw = await writeToDummyJson<ApiProduct>(
+    `/products/${product.id}`,
+    "PUT",
+    {
+      title: product.name,
+      description: product.description ?? "",
+      price: product.price,
+      stock: product.stock,
+      category: CATEGORY_SLUG_BY_DOMAIN[product.category],
+    },
+  );
+
+  return {
+    ...mapApiProduct(raw),
+    name: product.name,
+    description: product.description,
+    thumbnail: product.thumbnail,
+  };
+};
+
+/** DELETE /products/:id — same split as update. */
+export const deleteProduct = async (product: Product): Promise<void> => {
+  if (locallyCreatedProductIds.has(product.id)) {
+    return;
+  }
+
+  await writeToDummyJson<ApiProduct & { isDeleted?: boolean }>(
+    `/products/${product.id}`,
+    "DELETE",
+  );
+};

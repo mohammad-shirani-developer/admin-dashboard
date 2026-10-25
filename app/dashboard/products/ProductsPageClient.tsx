@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import FilterSelect from "@/app/components/ui/FilterSelect";
@@ -18,7 +18,13 @@ import useProductFilters, {
   type ProductStatusFilter,
   PRODUCTS_PAGE_SIZE,
 } from "@/app/hooks/useProductFilters";
-import { fetchProducts } from "@/app/lib/api";
+import {
+  createProduct,
+  deleteProduct,
+  fetchProducts,
+  updateProduct,
+} from "@/app/lib/api";
+import type { ProductWriteInput } from "@/app/lib/api";
 import type { Product } from "../types";
 import ErrorState from "../components/ErrorState";
 import TableSkeleton from "../components/TableSkeleton";
@@ -28,14 +34,14 @@ import ProductForm, {
 import ProductsTable from "./components/ProductsTable";
 
 /**
- * DummyJSON is a read-only API — created/updated/deleted products live only
- * in the React Query cache, with ids coming from a module-level counter.
+ * Mutations hit the real DummyJSON write endpoints (POST /products/add,
+ * PUT/DELETE /products/:id) and every list change is applied optimistically:
+ * the cache updates before the request, so the UI reacts instantly, and a
+ * failed request rolls the snapshot back instead of leaving the table in a
+ * state the server never confirmed. Entities created this session stay
+ * cache-only afterwards — DummyJSON's fake database would 404 them (see
+ * api.ts) — while original entities are really written.
  */
-let createdProductCount = 0;
-const nextCreatedProductId = () => {
-  createdProductCount += 1;
-  return 900000 + createdProductCount;
-};
 
 const CATEGORY_OPTIONS: ReadonlyArray<{
   value: ProductCategoryFilter;
@@ -97,29 +103,148 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingProduct(null);
+    setSubmitError(null);
   };
 
-  const handleCreateProduct = (values: ProductFormSubmitValues) => {
-    // DummyJSON is read-only — the new product is added to the query cache only.
-    queryClient.setQueryData<Product[]>(["products"], (previous = []) => [
-      {
-        id: nextCreatedProductId(),
-        name: values.name,
-        price: values.price,
-        category: values.category,
-        stock: values.stock,
-        status: values.status,
-        description: values.description || undefined,
-        thumbnail: values.imageUrl || undefined,
-      },
-      ...previous,
-    ]);
+  /* ------------------------------ mutations ------------------------------ */
 
-    handleCloseForm();
+  const createProductMutation = useMutation({
+    mutationFn: (input: ProductWriteInput) => createProduct(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: ["products"] });
+
+      const previousProducts = queryClient.getQueryData<Product[]>([
+        "products",
+      ]);
+      const optimisticId = -Date.now();
+
+      queryClient.setQueryData<Product[]>(["products"], (old = []) => [
+        {
+          id: optimisticId,
+          name: input.name,
+          price: input.price,
+          category: input.category,
+          stock: input.stock,
+          status: input.status,
+          description: input.description || undefined,
+          thumbnail: input.imageUrl || undefined,
+        },
+        ...old,
+      ]);
+
+      return { previousProducts, optimisticId };
+    },
+    onSuccess: (createdProduct, _input, context) => {
+      // Swap the optimistic row for the server-created one (real id).
+      queryClient.setQueryData<Product[]>(["products"], (old = []) =>
+        old.map((product) =>
+          product.id === context?.optimisticId ? createdProduct : product,
+        ),
+      );
+
+      handleCloseForm();
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData<Product[]>(
+          ["products"],
+          context.previousProducts,
+        );
+      }
+
+      // The form stays open with the values intact so nothing is retyped.
+      setSubmitError("Could not create the product. Please try again.");
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: (product: Product) => updateProduct(product),
+    onMutate: async (updatedProduct) => {
+      await queryClient.cancelQueries({ queryKey: ["products"] });
+
+      const previousProducts = queryClient.getQueryData<Product[]>([
+        "products",
+      ]);
+
+      queryClient.setQueryData<Product[]>(["products"], (old = []) =>
+        old.map((product) =>
+          product.id === updatedProduct.id ? updatedProduct : product,
+        ),
+      );
+
+      return { previousProducts };
+    },
+    onSuccess: (savedProduct) => {
+      queryClient.setQueryData<Product[]>(["products"], (old = []) =>
+        old.map((product) =>
+          product.id === savedProduct.id ? savedProduct : product,
+        ),
+      );
+
+      handleCloseForm();
+    },
+    onError: (_error, _updatedProduct, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData<Product[]>(
+          ["products"],
+          context.previousProducts,
+        );
+      }
+
+      setSubmitError("Could not save the changes. Please try again.");
+    },
+  });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: (product: Product) => deleteProduct(product),
+    onMutate: async (product) => {
+      await queryClient.cancelQueries({ queryKey: ["products"] });
+
+      const previousProducts = queryClient.getQueryData<Product[]>([
+        "products",
+      ]);
+
+      queryClient.setQueryData<Product[]>(["products"], (old = []) =>
+        old.filter((candidate) => candidate.id !== product.id),
+      );
+
+      setDeletingProduct(null);
+      setDeleteError(null);
+
+      return { previousProducts, deletedProduct: product };
+    },
+    onError: (_error, _product, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData<Product[]>(
+          ["products"],
+          context.previousProducts,
+        );
+      }
+
+      setDeleteError(
+        `Could not delete ${context?.deletedProduct.name ?? "the product"}. The list was restored — please try again.`,
+      );
+    },
+  });
+
+  const handleCreateProduct = (values: ProductFormSubmitValues) => {
+    // Optimistic: the row appears instantly and is replaced by the
+    // server-created product (real id) once POST /products/add answers.
+    createProductMutation.mutate({
+      name: values.name,
+      price: values.price,
+      category: values.category,
+      stock: values.stock,
+      status: values.status,
+      description: values.description || undefined,
+      imageUrl: values.imageUrl || undefined,
+    });
   };
 
   const handleUpdateProduct = (values: ProductFormSubmitValues) => {
@@ -127,25 +252,18 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
       return;
     }
 
-    // DummyJSON is read-only — the edit is applied to the query cache only.
-    queryClient.setQueryData<Product[]>(["products"], (previous = []) =>
-      previous.map((product) =>
-        product.id === editingProduct.id
-          ? {
-              ...product,
-              name: values.name,
-              price: values.price,
-              category: values.category,
-              stock: values.stock,
-              status: values.status,
-              description: values.description || undefined,
-              thumbnail: values.imageUrl || undefined,
-            }
-          : product,
-      ),
-    );
-
-    handleCloseForm();
+    // Optimistic: the edit applies to the table at once; a failed PUT
+    // rolls the row back and reopens the error inside the form.
+    updateProductMutation.mutate({
+      ...editingProduct,
+      name: values.name,
+      price: values.price,
+      category: values.category,
+      stock: values.stock,
+      status: values.status,
+      description: values.description || undefined,
+      thumbnail: values.imageUrl || undefined,
+    });
   };
 
   const handleConfirmDelete = () => {
@@ -153,12 +271,9 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
       return;
     }
 
-    // DummyJSON is read-only — the delete is applied to the query cache only.
-    queryClient.setQueryData<Product[]>(["products"], (previous = []) =>
-      previous.filter((product) => product.id !== deletingProduct.id),
-    );
-
-    setDeletingProduct(null);
+    // Optimistic: the row disappears at once; a failed DELETE restores it
+    // and surfaces the error above the table.
+    deleteProductMutation.mutate(deletingProduct);
   };
 
   if (isLoading) {
@@ -210,6 +325,10 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
         <ProductForm
           key={editingProduct ? `edit-${editingProduct.id}` : "create"}
           initialProduct={editingProduct}
+          submitting={
+            createProductMutation.isPending || updateProductMutation.isPending
+          }
+          submitError={submitError}
           onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
           onCancel={handleCloseForm}
         />
@@ -243,12 +362,33 @@ const ProductsPageClient = ({ initialQuery }: { initialQuery: string }) => {
 
             <button
               type="button"
+              disabled={deleteProductMutation.isPending}
               onClick={handleConfirmDelete}
-              className={withClasses(dangerButtonClasses, "w-full sm:w-auto")}
+              className={withClasses(
+                dangerButtonClasses,
+                "w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
+              )}
             >
-              Delete Product
+              {deleteProductMutation.isPending ? "Deleting..." : "Delete Product"}
             </button>
           </div>
+        </div>
+      )}
+
+      {deleteError && (
+        <div
+          className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+          role="alert"
+        >
+          <span>{deleteError}</span>
+
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            className="font-semibold underline underline-offset-2"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 

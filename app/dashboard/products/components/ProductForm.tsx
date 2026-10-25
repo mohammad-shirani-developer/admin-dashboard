@@ -102,6 +102,10 @@ export type ProductFormSubmitValues = {
 type ProductFormProps = {
   initialProduct?: Product | null;
   submitLabel?: string;
+  /** Set while the wrapping mutation is in flight — disables the submit. */
+  submitting?: boolean;
+  /** Server/mutation error shown inside the form (the caller owns it). */
+  submitError?: string | null;
   onSubmit: (values: ProductFormSubmitValues) => void;
   onCancel: () => void;
 };
@@ -144,6 +148,8 @@ const ProductImagePreview = ({ src }: { src: string }) => {
 const ProductForm = ({
   initialProduct = null,
   submitLabel,
+  submitting = false,
+  submitError = null,
   onSubmit,
   onCancel,
 }: ProductFormProps) => {
@@ -208,6 +214,15 @@ const ProductForm = ({
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
         {heading}
       </h2>
+
+      {submitError && (
+        <p
+          className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400"
+          role="alert"
+        >
+          {submitError}
+        </p>
+      )}
 
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
         Fill in product details
@@ -398,10 +413,17 @@ const ProductForm = ({
 
         <button
           type="submit"
-          disabled={isSubmitting}
-          className={withClasses(primaryButtonClasses, "w-full sm:w-auto")}
+          disabled={isSubmitting || submitting}
+          className={withClasses(
+            primaryButtonClasses,
+            "w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto",
+          )}
         >
-          {submitLabel ?? (initialProduct ? "Update Product" : "Save Product")}
+          {submitting
+            ? initialProduct
+              ? "Saving..."
+              : "Creating..."
+            : (submitLabel ?? (initialProduct ? "Update Product" : "Save Product"))}
         </button>
       </div>
     </form>
