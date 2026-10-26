@@ -181,7 +181,7 @@ export const mapApiProduct = (raw: ApiProduct): Product => ({
 
 export const mapApiUser = (raw: ApiUser): User => ({
   id: raw.id,
-  name: `${raw.firstName} ${raw.lastName}`.trim(),
+  name: `${raw.firstName.trim()} ${raw.lastName.trim()}`.trim(),
   email: raw.email,
   role: ROLE_BY_API_ROLE[raw.role ?? "user"] ?? "User",
   status: raw.id % 4 === 0 ? "Inactive" : "Active",
@@ -224,7 +224,7 @@ export const mapApiCartToOrder = (
 ): Order => {
   const user = users.find((candidate) => candidate.id === raw.userId);
   const customer = user
-    ? `${user.firstName} ${user.lastName}`.trim()
+    ? `${user.firstName.trim()} ${user.lastName.trim()}`.trim()
     : `User #${raw.userId}`;
 
   const items: OrderItem[] = raw.products.map((line) => ({
@@ -263,7 +263,7 @@ export const mapApiCustomer = (
 
   return {
     id: raw.id,
-    name: `${raw.firstName} ${raw.lastName}`.trim(),
+    name: `${raw.firstName.trim()} ${raw.lastName.trim()}`.trim(),
     email: raw.email,
     orders: stats.count,
     totalSpent: stats.totalSpent,
