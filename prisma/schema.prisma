@@ -1,0 +1,131 @@
+// admin-dashboard — Prisma schema (Phase 1)
+// Maps 1:1 to app/dashboard/types.ts so the UI layer needs almost no changes.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---- enums (Prisma enum values cannot contain spaces, e.g. "In Stock";
+// ---- display strings stay in the UI layer and are derived from stock.)
+
+enum UserRole {
+  Admin
+  User
+  Manager
+}
+
+enum UserStatus {
+  Active
+  Inactive
+}
+
+enum ProductCategory {
+  Laptop
+  Phone
+  Headphones
+}
+
+enum OrderStatus {
+  Delivered
+  Processing
+  Pending
+  Cancelled
+}
+
+enum CustomerStatus {
+  Active
+  Inactive
+}
+
+// Panel accounts (sign-in, RBAC). Deliberately separate from Customer:
+// DummyJSON merged both into "users", a real store keeps them apart.
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  passwordHash String? // null = no panel access; filled for auth accounts (Phase 2)
+  role         UserRole   @default(User)
+  status       UserStatus @default(Active)
+  image        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("users")
+}
+
+// Store customers. `orders` count and `totalSpent` are NOT stored —
+// they are derived from the Order table via _count/_sum so the numbers
+// can never drift out of sync with reality.
+model Customer {
+  id        Int            @id @default(autoincrement())
+  name      String
+  email     String         @unique
+  status    CustomerStatus @default(Active)
+  image     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  orders Order[]
+
+  @@map("customers")
+}
+
+// Product.status ("In Stock" / "Low Stock" / "Out of Stock") is a UI
+// concept derived from stock — kept out of the database on purpose.
+model Product {
+  id          Int             @id @default(autoincrement())
+  name        String
+  price       Decimal         @db.Decimal(10, 2) // never Float for money
+  category    ProductCategory @default(Laptop)
+  stock       Int             @default(0)
+  description String?
+  thumbnail   String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([category])
+  @@index([name])
+  @@map("products")
+}
+
+// Order.total is stored (computed from items inside the same transaction)
+// so analytics aggregations (_sum/groupBy) stay single-column and fast.
+model Order {
+  id         Int         @id @default(autoincrement())
+  customerId Int
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  total      Decimal     @default(0) @db.Decimal(10, 2)
+  status     OrderStatus @default(Pending)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  items OrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+// Line items snapshot title/price/thumbnail at purchase time, so order
+// history stays correct even after the product is renamed or repriced.
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  title     String
+  price     Decimal @db.Decimal(10, 2)
+  quantity  Int
+  thumbnail String?
+
+  @@index([orderId])
+  @@map("order_items")
+}
