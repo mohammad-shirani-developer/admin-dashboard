@@ -13,17 +13,17 @@ import {
 } from "@/app/components/ui/form-controls";
 
 const loginFormSchema = z.object({
-  username: z.string().trim().min(1, "Username is required"),
+  email: z.string().trim().min(1, "Email is required").email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-/* Public demo credentials from dummyjson.com — shown right on the card so
+/* Seeded demo credentials (prisma/seed.ts) — shown right on the card so
    reviewers can sign in without hunting for them in a README. */
 const DEMO_CREDENTIALS: LoginFormValues = {
-  username: "emilys",
-  password: "emilyspass",
+  email: "admin@demo.com",
+  password: "Admin1234!",
 };
 
 const isSafeRelativeTarget = (target: string): boolean =>
@@ -71,13 +71,17 @@ const LoginForm = () => {
       }
 
       router.replace(targetAfterSignIn());
+      /* The cookie changed and the dashboard is server-rendered per request;
+         a full refresh guarantees no stale client cache of the signed-out
+         state is shown. */
+      router.refresh();
     } catch {
       setServerError("Network error, please try again");
     }
   });
 
   const fillDemoCredentials = () => {
-    setValue("username", DEMO_CREDENTIALS.username);
+    setValue("email", DEMO_CREDENTIALS.email);
     setValue("password", DEMO_CREDENTIALS.password);
     setServerError(null);
   };
@@ -112,28 +116,28 @@ const LoginForm = () => {
         <form onSubmit={onSubmit} noValidate className="space-y-4">
           <div>
             <label
-              htmlFor="login-username"
+              htmlFor="login-email"
               className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Username
+              Email
             </label>
             <input
-              id="login-username"
-              type="text"
-              autoComplete="username"
-              aria-invalid={Boolean(errors.username)}
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
               aria-describedby={
-                errors.username ? "login-username-error" : undefined
+                errors.email ? "login-email-error" : undefined
               }
               className={inputClasses}
-              {...register("username")}
+              {...register("email")}
             />
-            {errors.username && (
+            {errors.email && (
               <p
-                id="login-username-error"
+                id="login-email-error"
                 className="mt-1.5 text-sm text-red-600 dark:text-red-400"
               >
-                {errors.username.message}
+                {errors.email.message}
               </p>
             )}
           </div>
@@ -181,8 +185,8 @@ const LoginForm = () => {
             Demo account
           </p>
           <p className="mt-1.5 text-gray-500 dark:text-gray-400">
-            username <code className="font-semibold">emilys</code> · password{" "}
-            <code className="font-semibold">emilyspass</code>
+            email <code className="font-semibold">admin@demo.com</code> ·
+            password <code className="font-semibold">Admin1234!</code>
           </p>
           <button
             type="button"
@@ -195,7 +199,8 @@ const LoginForm = () => {
       </div>
 
       <p className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-        Demo authentication via dummyjson.com — nothing you change is saved.
+        Real authentication against the seeded database — users come from
+        prisma/seed.ts.
       </p>
     </div>
   );

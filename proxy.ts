@@ -1,23 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  verifySessionToken,
+  SESSION_COOKIE_NAME,
+} from "@/app/lib/jwt";
 
 /**
  * Network-boundary guard (Next.js 16 renamed middleware.ts -> proxy.ts).
  *
- * Pages under /dashboard require a session cookie; the login screen bounces
- * signed-in visitors straight back to the dashboard. The cookie's *presence*
- * is checked here — its validity is the auth API's job at sign-in time, and
- * the httpOnly flag keeps clients from forging it.
+ * Pages under /dashboard require a *valid* session cookie — since Phase 2
+ * the cookie holds a JWT we signed ourselves, so the signature and expiry
+ * are verified here with the same AUTH_SECRET the login route used (jose
+ * runs in the Edge runtime). A stolen-but-expired or forged cookie gets
+ * bounced to /login instead of passing the old presence-only check. The
+ * login screen bounces signed-in visitors straight back to the dashboard.
  */
 
-const SESSION_COOKIE_NAME = "ta_session";
 const SIGN_IN_PATH = "/login";
 const AFTER_SIGN_IN_PATH = "/dashboard";
 
-export function proxy(request: NextRequest) {
-  const hasSession = request.cookies.has(SESSION_COOKIE_NAME);
+export async function proxy(request: NextRequest) {
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const session = await verifySessionToken(token);
   const { pathname, search } = request.nextUrl;
 
-  if (pathname.startsWith(AFTER_SIGN_IN_PATH) && !hasSession) {
+  if (pathname.startsWith(AFTER_SIGN_IN_PATH) && !session) {
     const signInUrl = request.nextUrl.clone();
     signInUrl.pathname = SIGN_IN_PATH;
     signInUrl.search = "";
@@ -28,10 +34,19 @@ export function proxy(request: NextRequest) {
       signInUrl.searchParams.set("next", intendedTarget);
     }
 
-    return NextResponse.redirect(signInUrl);
+    /* Expired or forged cookie: drop it so the login screen doesn't think
+       a session still exists on its own bounce-back check. */
+    const response = NextResponse.redirect(signInUrl);
+    response.cookies.set(SESSION_COOKIE_NAME, "", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+    return response;
   }
 
-  if (pathname === SIGN_IN_PATH && hasSession) {
+  if (pathname === SIGN_IN_PATH && session) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = AFTER_SIGN_IN_PATH;
     dashboardUrl.search = "";

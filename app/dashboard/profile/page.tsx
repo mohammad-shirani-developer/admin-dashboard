@@ -5,17 +5,15 @@ import { getSessionUser } from "@/app/lib/session";
 export const metadata: Metadata = { title: "Profile" };
 
 /**
- * Profile of the signed-in session user (decoded server-side from the
- * httpOnly session cookie). Falls back to a generic demo identity when no
- * session exists. The card still says the truth about persistence: DummyJSON
- * is read-only, so nothing here can actually be edited.
+ * Profile of the signed-in session user (verified server-side from the
+ * httpOnly JWT session cookie). Falls back to a generic demo identity when
+ * no session exists. Profile editing arrives with a later phase — for now
+ * the card is read-only, exactly like before.
  */
 const ProfilePage = async () => {
   const user = await getSessionUser();
-  const displayName = user
-    ? `${user.firstName} ${user.lastName}`.trim()
-    : "Demo account";
-  const email = user?.email || "demo@dummyjson.com";
+  const displayName = user?.name ?? "Demo account";
+  const email = user?.email || "admin@demo.com";
 
   return (
     <div className="mx-4 mt-6 pb-6 sm:mx-6 lg:mx-8">
@@ -48,7 +46,7 @@ const ProfilePage = async () => {
 
             <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400">
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              {user ? `@${user.username}` : "Administrator"}
+              {user?.role ?? "Administrator"}
             </p>
 
             <p className="mt-2 flex items-center justify-center gap-2 text-sm text-gray-600 sm:justify-start dark:text-gray-300">
@@ -68,9 +66,8 @@ const ProfilePage = async () => {
           />
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            You are signed in with the demo account via the DummyJSON auth API.
-            Data comes from the public DummyJSON API and changes stay in the
-            local query cache.
+            You are signed in with a database-backed account: the session is a
+            signed JWT in an httpOnly cookie, verified on every request.
           </p>
         </div>
       </section>

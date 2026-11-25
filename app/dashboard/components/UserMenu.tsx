@@ -48,7 +48,7 @@ const UserMenu = ({ user }: UserMenuProps) => {
     };
   }, [isOpen]);
 
-  const displayName = user ? `${user.firstName} ${user.lastName}`.trim() : "Demo account";
+  const displayName = user?.name ?? "Demo account";
   const initials = displayName.charAt(0).toUpperCase() || "?";
 
   const queryClient = useQueryClient();
@@ -117,7 +117,7 @@ const UserMenu = ({ user }: UserMenuProps) => {
               {displayName}
             </p>
             <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-              {user?.username ? `@${user.username} — demo account` : "demo account"}
+              {user?.email ?? "demo account"}
             </p>
           </div>
 

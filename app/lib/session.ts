@@ -1,63 +1,48 @@
 /**
- * Demo session helpers (server side only).
+ * Session helpers (server side only).
  *
- * The session is the DummyJSON access token stored in an httpOnly cookie by
- * the /api/auth/login route handler. There is no private signing secret to
- * verify against (the token is issued by dummyjson.com), so the payload is
- * only decoded — the signature was already validated by the auth API at
- * sign-in time and the cookie itself is httpOnly, so clients cannot forge it.
+ * The session is a real HS256 JWT signed with AUTH_SECRET at sign-in time
+ * (see app/lib/jwt.ts and /api/auth/login) and stored in an httpOnly cookie.
+ * Unlike the old DummyJSON demo, the signature is now ours — so it is
+ * verified on every read, not just decoded.
  */
 
 import { cookies } from "next/headers";
+import { verifySessionToken, SESSION_COOKIE_NAME } from "@/app/lib/jwt";
 
-export const SESSION_COOKIE_NAME = "ta_session";
+export { SESSION_COOKIE_NAME };
 
-/* Keep in sync with expiresInMins sent to DummyJSON during login (60 min). */
-export const SESSION_MAX_AGE_SECONDS = 60 * 60;
+/* Seven days. Keep in sync with the maxAge set by /api/auth/login. */
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 export type SessionUser = {
   id: number;
-  username: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  image?: string;
+  role: string;
+  image: string | null;
 };
 
-type SessionTokenPayload = Partial<SessionUser> & { exp?: number };
-
-/** Reads the session cookie and returns the signed-in user, or null. */
+/** Reads the session cookie, verifies the JWT, returns the user or null. */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  if (!token) {
+  const payload = await verifySessionToken(token);
+  if (!payload) {
     return null;
   }
 
-  const payloadSegment = token.split(".")[1];
-  if (!payloadSegment) {
+  const id = Number.parseInt(payload.sub, 10);
+  if (Number.isNaN(id)) {
     return null;
   }
 
-  try {
-    const payload = JSON.parse(
-      Buffer.from(payloadSegment, "base64url").toString("utf8"),
-    ) as SessionTokenPayload;
-
-    if (!payload.username || !payload.firstName) {
-      return null;
-    }
-
-    return {
-      id: payload.id ?? 0,
-      username: payload.username,
-      email: payload.email ?? "",
-      firstName: payload.firstName,
-      lastName: payload.lastName ?? "",
-      image: payload.image,
-    };
-  } catch {
-    return null;
-  }
+  return {
+    id,
+    name: payload.name,
+    email: payload.email,
+    role: payload.role,
+    image: payload.image ?? null,
+  };
 }
